@@ -29,8 +29,29 @@
 
                 <!-- Controls -->
                 <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,8">
+                    <!-- Model Selection -->
+                    <TextBlock Text="AI Model" FontSize="12" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding ModelOptions}"
+                              SelectedItem="{Binding SelectedModel}"
+                              HorizontalAlignment="Stretch"/>
+
+                    <!-- Concurrent Scans -->
+                    <TextBlock Text="Concurrent Scans" FontSize="12" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    <NumericUpDown Value="{Binding MaxConcurrentScans}"
+                                   Minimum="1" Maximum="8" Increment="1"
+                                   HorizontalAlignment="Stretch"
+                                   IsEnabled="{Binding !IsSelectedModelFree}"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="10" Opacity="0.6" Margin="0,-4,0,0"
+                               IsVisible="{Binding IsSelectedModelFree}">
+                        Free models limited to 1 concurrent scan
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="10" Opacity="0.6" Margin="0,-4,0,0"
+                               IsVisible="{Binding !IsSelectedModelFree}">
+                        Paid models: Use 3-4 for best speed
+                    </TextBlock>
+
                     <Button Content="Select Images" Command="{Binding SelectImagesCommand}"
-                            HorizontalAlignment="Stretch" Classes="accent" Padding="12,8"/>
+                            HorizontalAlignment="Stretch" Classes="accent" Padding="12,8" Margin="0,8,0,0"/>
                     <CheckBox IsChecked="{Binding ImagesArePairs}"
                               Content="Images are front+back pairs"
                               FontSize="12"/>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CardLister.ViewModels
 {
-    public partial class BulkScanViewModel : ViewModelBase
+    public partial class BulkScanViewModel : ViewModelBase, IDisposable
     {
         private readonly IScannerService _scannerService;
         private readonly ICardRepository _cardRepository;
@@ -32,6 +33,25 @@ namespace CardLister.ViewModels
         [ObservableProperty] private string? _successMessage;
         [ObservableProperty] private BulkScanItem? _selectedItem;
         [ObservableProperty] private string? _statusMessage;
+
+        // Model selection and concurrency
+        [ObservableProperty] private string _selectedModel = string.Empty;
+        [ObservableProperty] private int _maxConcurrentScans = 1;
+
+        public List<string> ModelOptions { get; } = new(OpenRouterScannerService.FreeVisionModels);
+
+        // Computed property: is the selected model a free model?
+        public bool IsSelectedModelFree => SelectedModel.Contains(":free");
+
+        partial void OnSelectedModelChanged(string value)
+        {
+            OnPropertyChanged(nameof(IsSelectedModelFree));
+            // If switching to free model, force concurrency to 1
+            if (IsSelectedModelFree)
+            {
+                MaxConcurrentScans = 1;
+            }
+        }
 
         public ObservableCollection<BulkScanItem> Items { get; } = new();
 
@@ -56,6 +76,11 @@ namespace CardLister.ViewModels
             _settingsService = settingsService;
             _variationVerifier = variationVerifier;
             _logger = logger;
+
+            // Initialize from settings
+            var settings = _settingsService.Load();
+            _selectedModel = settings.DefaultModel;
+            _maxConcurrentScans = settings.MaxConcurrentScans;
         }
 
         [RelayCommand]
@@ -119,11 +144,53 @@ namespace CardLister.ViewModels
             _scanCts = new CancellationTokenSource();
 
             var settings = _settingsService.Load();
+            var isFreeModel = IsSelectedModelFree;
 
-            foreach (var item in pending)
+            // For free models, force concurrency to 1 to respect rate limits
+            var maxConcurrency = isFreeModel ? 1 : MaxConcurrentScans;
+
+            _logger.LogInformation("Starting bulk scan of {Count} cards with max concurrency {Concurrency}",
+                pending.Count, maxConcurrency);
+
+            // Create semaphore to limit concurrent scans (Moss Machine pattern)
+            using var semaphore = new SemaphoreSlim(maxConcurrency, maxConcurrency);
+
+            // Process all items concurrently with semaphore limiting
+            var tasks = pending.Select(item => ProcessItemAsync(item, semaphore, settings, SelectedModel, isFreeModel));
+
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Bulk scan cancelled by user");
+            }
+
+            IsScanning = false;
+            _scanCts = null;
+            StatusMessage = null;
+
+            var scanned = Items.Count(i => i.Status == BulkScanStatus.Scanned);
+            var errors = Items.Count(i => i.Status == BulkScanStatus.Error);
+
+            if (errors > 0)
+                ErrorMessage = $"Scanned {scanned} cards, {errors} failed";
+            else
+                SuccessMessage = $"Scanned {scanned} cards successfully";
+        }
+
+        private async Task ProcessItemAsync(BulkScanItem item, SemaphoreSlim semaphore, AppSettings settings, string modelToUse, bool isFreeModel)
+        {
+            // _scanCts is guaranteed non-null when this method is called from ScanAllAsync
+#pragma warning disable CS8602
+            // Wait for semaphore slot (rate limiting)
+            await semaphore.WaitAsync(_scanCts.Token);
+
+            try
             {
                 if (_scanCts.Token.IsCancellationRequested)
-                    break;
+                    return;
 
                 item.Status = BulkScanStatus.Scanning;
                 StatusMessage = $"Scanning card {item.Index} of {ScanTotal}...";
@@ -132,7 +199,7 @@ namespace CardLister.ViewModels
                 try
                 {
                     var scanResult = await _scannerService.ScanCardAsync(
-                        item.FrontImagePath, item.BackImagePath, settings.DefaultModel);
+                        item.FrontImagePath, item.BackImagePath, modelToUse);
 
                     scanResult.Card.ImagePathFront = item.FrontImagePath;
                     if (!string.IsNullOrEmpty(item.BackImagePath))
@@ -191,30 +258,28 @@ namespace CardLister.ViewModels
                     item.ErrorMessage = ex.Message;
                 }
 
-                ScanProgress++;
+                // Thread-safe increment of progress
+                // Intentionally accessing backing field for Interlocked.Increment
+#pragma warning disable MVVMTK0034
+                Interlocked.Increment(ref _scanProgress);
+#pragma warning restore MVVMTK0034
+                OnPropertyChanged(nameof(ScanProgress));
 
-                // Add delay between requests ONLY for free models to avoid rate limiting
-                // Paid models (with credits) don't have these strict limits
-                var isFreeModel = settings.DefaultModel.Contains(":free");
-                if (isFreeModel && ScanProgress < ScanTotal && !_scanCts.Token.IsCancellationRequested)
+                // Add delay ONLY for free models to avoid rate limiting
+                // For paid models, the semaphore already limits concurrency
+                if (isFreeModel && !_scanCts.Token.IsCancellationRequested)
                 {
                     StatusMessage = "Waiting 4 seconds to avoid free tier rate limits...";
-                    _logger.LogInformation("Waiting 4 seconds before next scan to avoid rate limits on free model...");
+                    _logger.LogInformation("Waiting 4 seconds before releasing semaphore slot to avoid rate limits...");
                     await Task.Delay(4000, _scanCts.Token);
                 }
             }
-
-            IsScanning = false;
-            _scanCts = null;
-            StatusMessage = null;
-
-            var scanned = Items.Count(i => i.Status == BulkScanStatus.Scanned);
-            var errors = Items.Count(i => i.Status == BulkScanStatus.Error);
-
-            if (errors > 0)
-                ErrorMessage = $"Scanned {scanned} cards, {errors} failed";
-            else
-                SuccessMessage = $"Scanned {scanned} cards successfully";
+            finally
+            {
+                // Release semaphore slot
+                semaphore.Release();
+            }
+#pragma warning restore CS8602
         }
 
         [RelayCommand]
@@ -282,6 +347,14 @@ namespace CardLister.ViewModels
             SuccessMessage = null;
             ScanProgress = 0;
             ScanTotal = 0;
+        }
+
+        public void Dispose()
+        {
+            // Cancel any running scan operation
+            _scanCts?.Cancel();
+            _scanCts?.Dispose();
+            _scanCts = null;
         }
     }
 

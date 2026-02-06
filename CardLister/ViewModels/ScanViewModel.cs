@@ -95,6 +95,7 @@ namespace CardLister.ViewModels
                     scanResult.Card.ImagePathBack = ImagePathBack;
                 _lastScanResult = scanResult;
                 ScannedCard = CardDetailViewModel.FromCard(scanResult.Card);
+                MergeCustomGradingCompanies(ScannedCard);
 
                 // Run verification pipeline if enabled
                 if (settings.EnableVariationVerification)
@@ -233,6 +234,19 @@ namespace CardLister.ViewModels
                 // Learn from saved card (fire-and-forget)
                 _ = _checklistLearningService.LearnFromCardAsync(card);
 
+                // Persist custom grading company if new
+                if (card.IsGraded && !string.IsNullOrEmpty(card.GradeCompany))
+                {
+                    var presets = new[] { "PSA", "BGS", "CGC", "CCG", "SGC" };
+                    var settings = _settingsService.Load();
+                    if (!presets.Contains(card.GradeCompany, StringComparer.OrdinalIgnoreCase) &&
+                        !settings.CustomGradingCompanies.Contains(card.GradeCompany, StringComparer.OrdinalIgnoreCase))
+                    {
+                        settings.CustomGradingCompanies.Add(card.GradeCompany);
+                        _settingsService.Save(settings);
+                    }
+                }
+
                 SuccessMessage = $"Saved {card.PlayerName} to My Cards!";
                 Clear();
             }
@@ -242,10 +256,21 @@ namespace CardLister.ViewModels
             }
         }
 
+        private void MergeCustomGradingCompanies(CardDetailViewModel vm)
+        {
+            var settings = _settingsService.Load();
+            foreach (var custom in settings.CustomGradingCompanies)
+            {
+                if (!vm.GradingCompanyOptions.Contains(custom, StringComparer.OrdinalIgnoreCase))
+                    vm.GradingCompanyOptions.Add(custom);
+            }
+        }
+
         [RelayCommand]
         private void EnterManually()
         {
             ScannedCard = new CardDetailViewModel();
+            MergeCustomGradingCompanies(ScannedCard);
             ErrorMessage = null;
             SuccessMessage = null;
             VerificationResult = null;

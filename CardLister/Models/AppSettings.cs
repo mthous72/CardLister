@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace CardLister.Models
 {
     public class AppSettings
@@ -17,5 +19,6 @@ namespace CardLister.Models
         public bool AutoApplyHighConfidenceSuggestions { get; set; } = true;
         public bool RunConfirmationPass { get; set; } = true;
         public bool EnableChecklistLearning { get; set; } = true;
+        public List<string> CustomGradingCompanies { get; set; } = new();
     }
 }

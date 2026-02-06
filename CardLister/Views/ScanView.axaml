@@ -139,12 +139,9 @@
                         </Grid>
 
                         <TextBlock Text="Sport"/>
-                        <ComboBox SelectedItem="{Binding Sport}" HorizontalAlignment="Stretch">
-                            <ComboBoxItem Content="{x:Null}" Tag=""/>
-                            <ComboBoxItem Content="Football"/>
-                            <ComboBoxItem Content="Baseball"/>
-                            <ComboBoxItem Content="Basketball"/>
-                        </ComboBox>
+                        <ComboBox SelectedItem="{Binding Sport}"
+                                  ItemsSource="{x:Static vm:CardDetailViewModel.SportOptions}"
+                                  HorizontalAlignment="Stretch"/>
 
                         <!-- Manufacturer -->
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
@@ -179,13 +176,9 @@
 
                         <!-- Condition -->
                         <TextBlock Text="Condition"/>
-                        <ComboBox SelectedItem="{Binding Condition}" HorizontalAlignment="Stretch">
-                            <ComboBoxItem Content="Near Mint"/>
-                            <ComboBoxItem Content="Like New"/>
-                            <ComboBoxItem Content="Very Good"/>
-                            <ComboBoxItem Content="Good"/>
-                            <ComboBoxItem Content="Acceptable"/>
-                        </ComboBox>
+                        <ComboBox SelectedItem="{Binding Condition}"
+                                  ItemsSource="{x:Static vm:CardDetailViewModel.ConditionOptions}"
+                                  HorizontalAlignment="Stretch"/>
 
                         <!-- Grading -->
                         <CheckBox IsChecked="{Binding IsGraded}" Content="Graded" Margin="0,8,0,0"/>
@@ -223,17 +216,10 @@
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Cost ($)"/>
                             <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding CostBasis}" Watermark="0.00"/>
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Source"/>
-                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding CostSource}" HorizontalAlignment="Stretch">
-                                <ComboBoxItem Content="{x:Null}" Tag=""/>
-                                <ComboBoxItem Content="LCS"/>
-                                <ComboBoxItem Content="Online"/>
-                                <ComboBoxItem Content="CardShow"/>
-                                <ComboBoxItem Content="Break"/>
-                                <ComboBoxItem Content="Trade"/>
-                                <ComboBoxItem Content="Gift"/>
-                                <ComboBoxItem Content="PersonalCollection"/>
-                                <ComboBoxItem Content="Unknown"/>
-                            </ComboBox>
+                            <ComboBox Grid.Row="1" Grid.Column="1"
+                                      SelectedItem="{Binding CostSource}"
+                                      ItemsSource="{x:Static vm:CardDetailViewModel.CostSourceOptions}"
+                                      HorizontalAlignment="Stretch"/>
                         </Grid>
 
                         <TextBlock Text="Notes"/>

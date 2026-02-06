@@ -158,9 +158,9 @@
 
                     <TextBlock Text="Platform"/>
                     <ComboBox SelectedItem="{Binding SoldPlatform}" HorizontalAlignment="Stretch">
-                        <ComboBoxItem Content="Whatnot"/>
-                        <ComboBoxItem Content="eBay"/>
-                        <ComboBoxItem Content="Other"/>
+                        <x:String>Whatnot</x:String>
+                        <x:String>eBay</x:String>
+                        <x:String>Other</x:String>
                     </ComboBox>
 
                     <TextBlock Text="Fees ($)"/>

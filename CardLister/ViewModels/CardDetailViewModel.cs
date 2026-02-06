@@ -21,6 +21,10 @@ namespace CardLister.ViewModels
 
         public List<string> GradingCompanyOptions { get; set; } = new() { "PSA", "BGS", "CGC", "CCG", "SGC" };
 
+        public static List<Sport?> SportOptions { get; } = new() { null, Models.Enums.Sport.Football, Models.Enums.Sport.Baseball, Models.Enums.Sport.Basketball };
+        public static List<CostSource?> CostSourceOptions { get; } = new() { null, Models.Enums.CostSource.LCS, Models.Enums.CostSource.Online, Models.Enums.CostSource.CardShow, Models.Enums.CostSource.Break, Models.Enums.CostSource.Trade, Models.Enums.CostSource.Gift, Models.Enums.CostSource.PersonalCollection, Models.Enums.CostSource.Unknown };
+        public static List<string> ConditionOptions { get; } = new() { "Near Mint", "Like New", "Very Good", "Good", "Acceptable" };
+
         // Card Identity
         [ObservableProperty] private string _playerName = string.Empty;
         [ObservableProperty] private string? _cardNumber;

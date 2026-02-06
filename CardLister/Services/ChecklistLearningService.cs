@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CardLister.Data;
@@ -51,36 +52,56 @@ namespace CardLister.Services
 
                 if (checklist == null)
                 {
-                    // Create new learned checklist
-                    checklist = new SetChecklist
-                    {
-                        Manufacturer = card.Manufacturer,
-                        Brand = card.Brand,
-                        Year = card.Year.Value,
-                        Sport = sport,
-                        DataSource = "learned",
-                        CachedAt = DateTime.UtcNow,
-                        LastEnrichedAt = DateTime.UtcNow,
-                        Cards = new List<ChecklistCard>(),
-                        KnownVariations = new List<string>()
-                    };
+                    // Try to load from embedded seed data first
+                    checklist = TryLoadFromSeedData(card.Manufacturer, card.Brand, card.Year.Value, sport);
 
-                    // Add the card
-                    if (!string.IsNullOrWhiteSpace(card.CardNumber))
+                    if (checklist == null)
                     {
-                        checklist.Cards.Add(new ChecklistCard
+                        // No seed data — create minimal learned checklist
+                        checklist = new SetChecklist
                         {
-                            CardNumber = card.CardNumber,
-                            PlayerName = card.PlayerName,
-                            Team = card.Team,
-                            IsRookie = card.IsRookie,
-                            Source = "learned"
-                        });
+                            Manufacturer = card.Manufacturer,
+                            Brand = card.Brand,
+                            Year = card.Year.Value,
+                            Sport = sport,
+                            DataSource = "learned",
+                            CachedAt = DateTime.UtcNow,
+                            LastEnrichedAt = DateTime.UtcNow,
+                            Cards = new List<ChecklistCard>(),
+                            KnownVariations = new List<string>()
+                        };
                     }
 
-                    // Add variation if present
+                    // Add the scanned card if not already in seed data
+                    if (!string.IsNullOrWhiteSpace(card.CardNumber))
+                    {
+                        var normalizedNumber = FuzzyMatcher.NormalizeCardNumber(card.CardNumber);
+                        var cardExists = checklist.Cards.Any(c =>
+                            FuzzyMatcher.NormalizeCardNumber(c.CardNumber) == normalizedNumber);
+
+                        if (!cardExists)
+                        {
+                            checklist.Cards.Add(new ChecklistCard
+                            {
+                                CardNumber = card.CardNumber,
+                                PlayerName = card.PlayerName,
+                                Team = card.Team,
+                                IsRookie = card.IsRookie,
+                                Source = "learned"
+                            });
+                        }
+                    }
+
+                    // Add variation if not already in seed data
                     if (!string.IsNullOrWhiteSpace(card.ParallelName))
-                        checklist.KnownVariations.Add(card.ParallelName);
+                    {
+                        var normalizedParallel = FuzzyMatcher.NormalizeParallelName(card.ParallelName);
+                        if (!checklist.KnownVariations.Any(v =>
+                            FuzzyMatcher.NormalizeParallelName(v) == normalizedParallel))
+                        {
+                            checklist.KnownVariations.Add(card.ParallelName);
+                        }
+                    }
                     if (!string.IsNullOrWhiteSpace(card.VariationType) && card.VariationType != "Base")
                     {
                         if (!checklist.KnownVariations.Contains(card.VariationType, StringComparer.OrdinalIgnoreCase))
@@ -99,6 +120,8 @@ namespace CardLister.Services
                         db.MissingChecklists.Remove(missing);
 
                     await db.SaveChangesAsync();
+                    _logger.LogInformation("Created checklist for {Manufacturer} {Brand} {Year} ({Source})",
+                        checklist.Manufacturer, checklist.Brand, checklist.Year, checklist.DataSource);
                     return;
                 }
 
@@ -293,6 +316,62 @@ namespace CardLister.Services
 
             var json = JsonSerializer.Serialize(exportData, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(outputPath, json);
+        }
+
+        private SetChecklist? TryLoadFromSeedData(string manufacturer, string brand, int year, string? sport)
+        {
+            try
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var resourceNames = assembly.GetManifestResourceNames()
+                    .Where(n => n.Contains("SeedData") && n.EndsWith(".json"))
+                    .ToList();
+
+                foreach (var resourceName in resourceNames)
+                {
+                    using var stream = assembly.GetManifestResourceStream(resourceName);
+                    if (stream == null) continue;
+
+                    using var reader = new StreamReader(stream);
+                    var json = reader.ReadToEnd();
+                    var seedData = JsonSerializer.Deserialize<SeedChecklistData>(json);
+                    if (seedData == null) continue;
+
+                    if (string.Equals(seedData.Manufacturer, manufacturer, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(seedData.Brand, brand, StringComparison.OrdinalIgnoreCase) &&
+                        seedData.Year == year &&
+                        string.Equals(seedData.Sport, sport, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInformation("Found seed data for {Manufacturer} {Brand} {Year}", manufacturer, brand, year);
+                        return new SetChecklist
+                        {
+                            Manufacturer = seedData.Manufacturer,
+                            Brand = seedData.Brand,
+                            Year = seedData.Year,
+                            Sport = seedData.Sport,
+                            TotalBaseCards = seedData.TotalBaseCards,
+                            DataSource = "seed",
+                            CachedAt = DateTime.UtcNow,
+                            LastEnrichedAt = DateTime.UtcNow,
+                            Cards = seedData.Cards?.Select(c => new ChecklistCard
+                            {
+                                CardNumber = c.CardNumber,
+                                PlayerName = c.PlayerName,
+                                Team = c.Team,
+                                IsRookie = c.IsRookie,
+                                Source = "seed"
+                            }).ToList() ?? new List<ChecklistCard>(),
+                            KnownVariations = seedData.KnownVariations ?? new List<string>()
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to search seed data for {Manufacturer} {Brand} {Year}", manufacturer, brand, year);
+            }
+
+            return null;
         }
 
         public async Task<List<SetChecklist>> GetAllChecklistsAsync()

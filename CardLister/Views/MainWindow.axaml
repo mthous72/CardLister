@@ -1,20 +1,83 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CardLister.ViewModels"
+        xmlns:conv="using:CardLister.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="CardLister.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="CardLister">
+        Title="CardLister"
+        Width="1100" Height="700"
+        MinWidth="900" MinHeight="550">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+    <Window.Resources>
+        <conv:EqualityConverter x:Key="EqualityConverter"/>
+    </Window.Resources>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <DockPanel>
+        <!-- Sidebar Navigation -->
+        <Border DockPanel.Dock="Left" Width="160"
+                IsVisible="{Binding ShowSidebar}"
+                Background="{DynamicResource SystemChromeLowColor}"
+                BorderBrush="{DynamicResource SystemBaseLowColor}"
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- App Title -->
+                <TextBlock DockPanel.Dock="Top"
+                           Text="CardLister"
+                           FontSize="20" FontWeight="Bold"
+                           Margin="16,20,16,24"
+                           Foreground="{DynamicResource SystemBaseHighColor}"/>
 
+                <!-- Nav Buttons -->
+                <StackPanel Spacing="2" Margin="8,0">
+                    <Button Command="{Binding NavigateToCommand}" CommandParameter="Scan"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="12,10" Classes="nav"
+                            Classes.active="{Binding CurrentPageName, Converter={StaticResource EqualityConverter}, ConverterParameter=Scan}">
+                        <TextBlock Text="Scan" FontSize="14"/>
+                    </Button>
+                    <Button Command="{Binding NavigateToCommand}" CommandParameter="Inventory"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="12,10" Classes="nav"
+                            Classes.active="{Binding CurrentPageName, Converter={StaticResource EqualityConverter}, ConverterParameter=Inventory}">
+                        <TextBlock Text="My Cards" FontSize="14"/>
+                    </Button>
+                    <Button Command="{Binding NavigateToCommand}" CommandParameter="Pricing"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="12,10" Classes="nav"
+                            Classes.active="{Binding CurrentPageName, Converter={StaticResource EqualityConverter}, ConverterParameter=Pricing}">
+                        <TextBlock Text="Price" FontSize="14"/>
+                    </Button>
+                    <Button Command="{Binding NavigateToCommand}" CommandParameter="Export"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="12,10" Classes="nav"
+                            Classes.active="{Binding CurrentPageName, Converter={StaticResource EqualityConverter}, ConverterParameter=Export}">
+                        <TextBlock Text="Export" FontSize="14"/>
+                    </Button>
+                    <Button Command="{Binding NavigateToCommand}" CommandParameter="Reports"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="12,10" Classes="nav"
+                            Classes.active="{Binding CurrentPageName, Converter={StaticResource EqualityConverter}, ConverterParameter=Reports}">
+                        <TextBlock Text="Reports" FontSize="14"/>
+                    </Button>
+
+                    <!-- Spacer -->
+                    <Border Height="1" Background="{DynamicResource SystemBaseLowColor}" Margin="4,12"/>
+
+                    <Button Command="{Binding NavigateToCommand}" CommandParameter="Settings"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="12,10" Classes="nav"
+                            Classes.active="{Binding CurrentPageName, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}">
+                        <TextBlock Text="Settings" FontSize="14"/>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Active Page Content -->
+        <ContentControl Content="{Binding CurrentPage}" Margin="0"/>
+    </DockPanel>
 </Window>

@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
+             x:Class="CardLister.Views.ReportsView"
+             x:DataType="vm:ReportsViewModel">
+
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="20" MaxWidth="750">
+
+            <TextBlock Text="Financial Reports" FontSize="24" FontWeight="Bold"/>
+
+            <!-- Date Range -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="16">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="From:" VerticalAlignment="Center"/>
+                    <DatePicker SelectedDate="{Binding StartDate}"/>
+                    <TextBlock Text="To:" VerticalAlignment="Center"/>
+                    <DatePicker SelectedDate="{Binding EndDate}"/>
+                    <Button Content="Apply" Command="{Binding LoadReportCommand}" Padding="16,6"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Summary Cards -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12" ColumnSpacing="16">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Cards Sold" Opacity="0.6"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding CardsSold}" FontSize="28" FontWeight="Bold" Margin="0,18,0,0"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Total Revenue" Opacity="0.6"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalRevenue, StringFormat='\{0:C2\}'}" FontSize="28" FontWeight="Bold" Margin="0,18,0,0"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Net Profit" Opacity="0.6"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding NetProfit, StringFormat='\{0:C2\}'}" FontSize="28" FontWeight="Bold" Foreground="Green" Margin="0,18,0,0"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0">
+                        <Run Text="Cost Basis: " Foreground="Gray"/>
+                        <Run Text="{Binding TotalCostBasis, StringFormat='\{0:C2\}'}"/>
+                    </TextBlock>
+                    <TextBlock Grid.Row="2" Grid.Column="1">
+                        <Run Text="Fees: " Foreground="Gray"/>
+                        <Run Text="{Binding TotalFees, StringFormat='\{0:C2\}'}"/>
+                    </TextBlock>
+                    <TextBlock Grid.Row="2" Grid.Column="2">
+                        <Run Text="Shipping: " Foreground="Gray"/>
+                        <Run Text="{Binding TotalShipping, StringFormat='\{0:C2\}'}"/>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <!-- Monthly Breakdown -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Monthly Breakdown" FontSize="18" FontWeight="SemiBold"/>
+                    <DataGrid ItemsSource="{Binding MonthlyData}" AutoGenerateColumns="False"
+                              IsReadOnly="True" GridLinesVisibility="Horizontal" MaxHeight="250">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Month" Binding="{Binding MonthName}" Width="120"/>
+                            <DataGridTextColumn Header="Cards Sold" Binding="{Binding CardsSold}" Width="100"/>
+                            <DataGridTextColumn Header="Revenue" Binding="{Binding Revenue, StringFormat='\{0:C2\}'}" Width="120"/>
+                            <DataGridTextColumn Header="Profit" Binding="{Binding Profit, StringFormat='\{0:C2\}'}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Top Sellers -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Top Sellers (by profit)" FontSize="18" FontWeight="SemiBold"/>
+                    <DataGrid ItemsSource="{Binding TopSellers}" AutoGenerateColumns="False"
+                              IsReadOnly="True" GridLinesVisibility="Horizontal" MaxHeight="250">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Card" Binding="{Binding Description}" Width="250"/>
+                            <DataGridTextColumn Header="Sale Price" Binding="{Binding SalePrice, StringFormat='\{0:C2\}'}" Width="100"/>
+                            <DataGridTextColumn Header="Profit" Binding="{Binding Profit, StringFormat='\{0:C2\}'}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Export Buttons -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Export Tax CSV" Command="{Binding ExportTaxCsvCommand}" Padding="16,8"/>
+            </StackPanel>
+
+            <TextBlock Text="{Binding StatusMessage}" Opacity="0.7"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

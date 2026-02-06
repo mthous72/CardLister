@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="CardLister.Views.PricingView"
+             x:DataType="vm:PricingViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Price Cards" FontSize="24" FontWeight="Bold"/>
+            <TextBlock IsVisible="{Binding HasCards}">
+                <Run Text="Card"/>
+                <Run Text="{Binding CurrentPosition}"/>
+                <Run Text="of"/>
+                <Run Text="{Binding TotalCount}"/>
+            </TextBlock>
+            <TextBlock Text="{Binding StatusMessage}" Opacity="0.6"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding HasCards}">
+            <StackPanel Spacing="16" MaxWidth="700">
+
+                <!-- Card Info -->
+                <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                        CornerRadius="8" Padding="20">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                        <!-- Card thumbnail -->
+                        <Image Grid.Column="0" Source="{Binding CurrentCard.ImagePathFront}"
+                               Width="80" MaxHeight="120" Stretch="Uniform"
+                               VerticalAlignment="Top"
+                               IsVisible="{Binding CurrentCard.ImagePathFront, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="{Binding CurrentCard.PlayerName}" FontSize="20" FontWeight="Bold"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{Binding CurrentCard.Year}"/>
+                                <TextBlock Text="{Binding CurrentCard.Manufacturer}"/>
+                                <TextBlock Text="{Binding CurrentCard.Brand}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{Binding CurrentCard.VariationType}" Opacity="0.7"/>
+                                <TextBlock Text="{Binding CurrentCard.ParallelName}" Opacity="0.7"/>
+                                <TextBlock Text="{Binding CurrentCard.Team}" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding CurrentCard.CardNumber, StringFormat='#{0}'}"
+                                           IsVisible="{Binding CurrentCard.CardNumber, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <TextBlock Text="{Binding CurrentCard.SerialNumbered}"
+                                           IsVisible="{Binding CurrentCard.SerialNumbered, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Research Buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Open Terapeak" Command="{Binding OpenTerapeakCommand}" Padding="16,8"/>
+                    <Button Content="Open eBay Sold" Command="{Binding OpenEbaySoldCommand}" Padding="16,8"/>
+                </StackPanel>
+
+                <!-- Pricing Fields -->
+                <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                        CornerRadius="8" Padding="20">
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="16">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Market Value ($)" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MarketValue}" Watermark="e.g., 15.00"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Suggested Price" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SuggestedPrice, StringFormat='\{0:C2\}'}"
+                                   VerticalAlignment="Center" FontWeight="SemiBold"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Listing Price ($)" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ListingPrice}" Watermark="Your price"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Net After Fees" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NetAfterFees, StringFormat='\{0:C2\}'}"
+                                   VerticalAlignment="Center" FontWeight="SemiBold" Foreground="Green"/>
+
+                        <!-- Cost Basis -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Cost Basis ($)"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding CostBasis}" Watermark="What you paid"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Cost Notes"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CostNotes}" Watermark="Receipt #, etc."/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- No cards message -->
+        <TextBlock Grid.Row="1" Text="No unpriced cards. Go scan some cards!"
+                   IsVisible="{Binding !HasCards}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="16" Opacity="0.5"/>
+
+        <!-- Button Row -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
+                    Margin="0,16,0,0" IsVisible="{Binding HasCards}">
+            <Button Content="Previous" Command="{Binding PreviousCommand}" Padding="16,8"/>
+            <Button Content="Save and Next" Command="{Binding SaveAndNextCommand}"
+                    Classes="accent" Padding="20,10"/>
+            <Button Content="Skip" Command="{Binding SkipCommand}" Padding="16,8"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

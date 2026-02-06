@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:conv="using:CardLister.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="CardLister.Views.SetupWizardView"
+             x:DataType="vm:SetupWizardViewModel">
+
+    <UserControl.Resources>
+        <conv:EqualityConverter x:Key="Eq"/>
+    </UserControl.Resources>
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="520">
+        <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                CornerRadius="12" Padding="40" Background="{DynamicResource SystemChromeLowColor}">
+            <StackPanel Spacing="20">
+
+                <TextBlock Text="Welcome to CardLister" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                <TextBlock HorizontalAlignment="Center" Opacity="0.6">
+                    <Run Text="Step"/>
+                    <Run Text="{Binding CurrentStep}"/>
+                    <Run Text="of 3"/>
+                </TextBlock>
+
+                <!-- Step 1: OpenRouter -->
+                <StackPanel Spacing="12"
+                            IsVisible="{Binding CurrentStep, Converter={StaticResource Eq}, ConverterParameter=1}">
+                    <TextBlock Text="OpenRouter API Key" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" Opacity="0.7"
+                               Text="OpenRouter lets CardLister use AI to scan your card images. You need an API key (free to sign up, pay per scan ~$0.01)."/>
+                    <Button Content="Create Free Account" Command="{Binding OpenOpenRouterSignupCommand}" Padding="12,6"/>
+                    <TextBlock Text="Paste your API key:"/>
+                    <TextBox Text="{Binding OpenRouterApiKey}" PasswordChar="*" Watermark="sk-or-v1-..."/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Test Connection" Command="{Binding TestOpenRouterCommand}"
+                                IsEnabled="{Binding !IsTestingOpenRouter}" Padding="12,6"/>
+                        <TextBlock Text="{Binding OpenRouterStatus}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step 2: ImgBB -->
+                <StackPanel Spacing="12"
+                            IsVisible="{Binding CurrentStep, Converter={StaticResource Eq}, ConverterParameter=2}">
+                    <TextBlock Text="ImgBB API Key" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" Opacity="0.7"
+                               Text="ImgBB hosts your card images so Whatnot can display them. Free with no limits."/>
+                    <Button Content="Get API Key" Command="{Binding OpenImgBBSignupCommand}" Padding="12,6"/>
+                    <TextBlock Text="Paste your API key:"/>
+                    <TextBox Text="{Binding ImgBBApiKey}" PasswordChar="*" Watermark="Your ImgBB API key"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Test Connection" Command="{Binding TestImgBBCommand}"
+                                IsEnabled="{Binding !IsTestingImgBB}" Padding="12,6"/>
+                        <TextBlock Text="{Binding ImgBBStatus}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step 3: Preferences -->
+                <StackPanel Spacing="12"
+                            IsVisible="{Binding CurrentStep, Converter={StaticResource Eq}, ConverterParameter=3}">
+                    <TextBlock Text="Preferences" FontSize="16" FontWeight="SemiBold"/>
+                    <CheckBox IsChecked="{Binding IsEbaySeller}" Content="I sell on eBay (enables Terapeak links)"/>
+                    <TextBlock Text="Default Shipping Profile"/>
+                    <ComboBox SelectedItem="{Binding DefaultShippingProfile}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="4 oz"/>
+                        <ComboBoxItem Content="8 oz"/>
+                        <ComboBoxItem Content="1 lb"/>
+                    </ComboBox>
+                    <TextBlock Text="Default Condition"/>
+                    <ComboBox SelectedItem="{Binding DefaultCondition}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="Near Mint"/>
+                        <ComboBoxItem Content="Like New"/>
+                        <ComboBoxItem Content="Very Good"/>
+                        <ComboBoxItem Content="Good"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Content="Back" Command="{Binding BackCommand}" Padding="16,8"
+                            IsVisible="{Binding ShowBack}"/>
+                    <Button Content="Next" Command="{Binding NextCommand}" Padding="16,8"
+                            IsVisible="{Binding ShowNext}"/>
+                    <Button Content="Finish Setup" Command="{Binding FinishCommand}"
+                            IsVisible="{Binding ShowFinish}"
+                            Classes="accent" Padding="20,8"/>
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,61 @@
+using System.Linq;
+using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+
+namespace CardLister.Services
+{
+    public class AvaloniaFileDialogService : IFileDialogService
+    {
+        private IStorageProvider? GetStorageProvider()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                return desktop.MainWindow?.StorageProvider;
+            return null;
+        }
+
+        public async Task<string?> OpenImageFileAsync()
+        {
+            var sp = GetStorageProvider();
+            if (sp == null) return null;
+
+            var result = await sp.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select Card Image",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Image Files")
+                    {
+                        Patterns = new[] { "*.jpg", "*.jpeg", "*.png", "*.webp", "*.bmp" }
+                    }
+                }
+            });
+
+            return result.FirstOrDefault()?.Path.LocalPath;
+        }
+
+        public async Task<string?> SaveCsvFileAsync(string defaultFileName)
+        {
+            var sp = GetStorageProvider();
+            if (sp == null) return null;
+
+            var result = await sp.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Save CSV File",
+                DefaultExtension = "csv",
+                SuggestedFileName = defaultFileName,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("CSV Files")
+                    {
+                        Patterns = new[] { "*.csv" }
+                    }
+                }
+            });
+
+            return result?.Path.LocalPath;
+        }
+    }
+}

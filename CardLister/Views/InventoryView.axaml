@@ -1,0 +1,185 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:models="using:CardLister.Models"
+             xmlns:conv="using:CardLister.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="CardLister.Views.InventoryView"
+             x:DataType="vm:InventoryViewModel">
+
+    <UserControl.Resources>
+        <conv:CurrencyFormatConverter x:Key="CurrencyFormat"/>
+        <conv:PriceAgeToColorConverter x:Key="PriceAgeColor"/>
+        <conv:StatusToBadgeConverter x:Key="StatusBadge"/>
+        <conv:FilePathToBitmapConverter x:Key="FilePathToBitmapConverter"/>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="24">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="My Cards" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TotalCount, StringFormat='({0} total)'}"
+                           FontSize="16" Opacity="0.6" VerticalAlignment="Center"/>
+                <Button Content="{Binding StaleCardCount, StringFormat='Reprice Stale Cards ({0})'}"
+                        Command="{Binding NavigateToRepriceCommand}"
+                        IsVisible="{Binding StaleCardCount}"
+                        Foreground="Red" Padding="12,6" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Filter Bar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+            <TextBox Text="{Binding SearchText}" Watermark="Search players, brands, teams..."
+                     Width="250"/>
+            <ComboBox ItemsSource="{Binding SportOptions}" SelectedItem="{Binding SelectedSport}"
+                      Width="130"/>
+            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}"
+                      Width="130"/>
+            <Button Content="Refresh" Command="{Binding RefreshCommand}" Padding="16,8"/>
+        </StackPanel>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding FilteredCards}"
+                  SelectedItem="{Binding SelectedCard}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  GridLinesVisibility="Horizontal"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="True"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" Width="40">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Card">
+                            <Image Source="{Binding ImagePathFront, Converter={StaticResource FilePathToBitmapConverter}}"
+                                   Width="28" Height="28"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   IsVisible="{Binding ImagePathFront, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Player" Binding="{Binding PlayerName}" Width="180"/>
+                <DataGridTextColumn Header="Year" Binding="{Binding Year}" Width="60"/>
+                <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="100"/>
+                <DataGridTextColumn Header="Parallel" Binding="{Binding ParallelName}" Width="100"/>
+                <DataGridTextColumn Header="Team" Binding="{Binding Team}" Width="140"/>
+                <DataGridTextColumn Header="Price" Binding="{Binding ListingPrice, Converter={StaticResource CurrencyFormat}, Mode=OneWay}" Width="80"/>
+                <DataGridTemplateColumn Header="Age" Width="50">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:Card">
+                            <Ellipse Width="12" Height="12"
+                                     Fill="{Binding PriceDate, Converter={StaticResource PriceAgeColor}}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status, Converter={StaticResource StatusBadge}, Mode=OneWay}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Summary Footer -->
+        <Border Grid.Row="3" Margin="0,12,0,0"
+                Background="{DynamicResource SystemChromeLowColor}"
+                CornerRadius="6" Padding="16,10">
+            <StackPanel Orientation="Horizontal" Spacing="24">
+                <TextBlock>
+                    <Run Text="Total:" FontWeight="SemiBold"/>
+                    <Run Text="{Binding TotalCount}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Priced:" FontWeight="SemiBold"/>
+                    <Run Text="{Binding PricedCount}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Needs Pricing:" FontWeight="SemiBold"/>
+                    <Run Text="{Binding NeedsPricingCount}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Value:" FontWeight="SemiBold"/>
+                    <Run Text="{Binding TotalValue, StringFormat='\{0:C2\}'}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Stale:" FontWeight="SemiBold"/>
+                    <Run Text="{Binding StaleCardCount}"/>
+                </TextBlock>
+                <Button Content="Delete Selected" Command="{Binding RequestDeleteSelectedCommand}"
+                        IsEnabled="{Binding SelectedCard, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Padding="12,4"/>
+                <Button Content="Mark as Sold" Command="{Binding OpenSoldDialogCommand}"
+                        IsEnabled="{Binding SelectedCard, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Padding="12,4"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Delete Confirmation Dialog Overlay -->
+        <Border Grid.RowSpan="4" IsVisible="{Binding ShowDeleteConfirmDialog}"
+                Background="#80000000" CornerRadius="0">
+            <Border Background="{DynamicResource SystemChromeLowColor}"
+                    BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="12" Padding="30" MaxWidth="380"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Confirm Delete" FontSize="20" FontWeight="Bold"/>
+                    <TextBlock TextWrapping="Wrap">
+                        <Run Text="Are you sure you want to delete"/>
+                        <Run Text="{Binding SelectedCard.PlayerName}" FontWeight="SemiBold"/>
+                        <Run Text="? This cannot be undone."/>
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" Padding="16,8"/>
+                        <Button Content="Delete" Command="{Binding ConfirmDeleteCommand}"
+                                Background="Red" Foreground="White" Padding="16,8"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Mark as Sold Dialog Overlay -->
+        <Border Grid.RowSpan="4" IsVisible="{Binding ShowSoldDialog}"
+                Background="#80000000" CornerRadius="0">
+            <Border Background="{DynamicResource SystemChromeLowColor}"
+                    BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="12" Padding="30" MaxWidth="420"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Mark as Sold" FontSize="20" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding SelectedCard.PlayerName}" FontSize="14" Opacity="0.7"/>
+
+                    <TextBlock Text="Sale Price ($)" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding SoldSalePrice}" Watermark="12.99"/>
+
+                    <TextBlock Text="Platform"/>
+                    <ComboBox SelectedItem="{Binding SoldPlatform}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="Whatnot"/>
+                        <ComboBoxItem Content="eBay"/>
+                        <ComboBoxItem Content="Other"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Fees ($)"/>
+                    <TextBox Text="{Binding SoldFees}" Watermark="Auto-calculated"/>
+
+                    <TextBlock Text="Shipping Cost ($)"/>
+                    <TextBox Text="{Binding SoldShippingCost}" Watermark="1.00"/>
+
+                    <TextBlock FontWeight="SemiBold" Foreground="Green">
+                        <Run Text="Net Profit: "/>
+                        <Run Text="{Binding SoldNetProfit, StringFormat='\{0:C2\}'}"/>
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="Cancel" Command="{Binding CancelSoldDialogCommand}" Padding="16,8"/>
+                        <Button Content="Mark as Sold" Command="{Binding ConfirmSoldCommand}"
+                                Classes="accent" Padding="16,8"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

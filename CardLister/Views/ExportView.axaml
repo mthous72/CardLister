@@ -1,0 +1,92 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="CardLister.Views.ExportView"
+             x:DataType="vm:ExportViewModel">
+
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="20" MaxWidth="700">
+
+            <TextBlock Text="Export to Whatnot" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Upload images and generate CSV for Whatnot bulk import" Opacity="0.6"/>
+
+            <!-- Summary Cards -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Export Summary" FontSize="18" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Cards ready for export:"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ReadyCardCount}" FontWeight="Bold"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Still need pricing:"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding NeedsPricingCount}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Need image upload:"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding NeedsImageUploadCount}"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Total value:"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalValue, StringFormat='\{0:C2\}'}" FontWeight="Bold"/>
+                    </Grid>
+                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Padding="12,6" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Step 1: Upload Images -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Step 1: Upload Images to ImgBB" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="Upload local card images to ImgBB for public URLs" Opacity="0.6"/>
+
+                    <Button Content="Upload Images" Command="{Binding UploadImagesCommand}"
+                            IsEnabled="{Binding !IsUploading}" Padding="20,10"/>
+
+                    <!-- Progress -->
+                    <StackPanel IsVisible="{Binding IsUploading}" Spacing="4">
+                        <ProgressBar Minimum="0" Maximum="{Binding UploadTotal}" Value="{Binding UploadProgress}"/>
+                        <TextBlock>
+                            <Run Text="{Binding UploadProgress}"/>
+                            <Run Text="of"/>
+                            <Run Text="{Binding UploadTotal}"/>
+                            <Run Text="uploaded"/>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Step 2: Export CSV -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Step 2: Download CSV" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="Generate Whatnot-compatible CSV file for bulk import" Opacity="0.6"/>
+
+                    <Button Content="Download Whatnot CSV" Command="{Binding ExportCsvCommand}"
+                            Classes="accent" Padding="20,10"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Step 3: Upload to Whatnot -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Step 3: Import to Whatnot" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" Opacity="0.6"
+                               Text="Go to Whatnot Seller Hub > Inventory > Import Products. Upload the CSV file, review drafts, then publish."/>
+                    <Button Content="Open Whatnot Seller Hub" Command="{Binding OpenWhatnotSellerHubCommand}" Padding="16,8"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Messages -->
+            <TextBlock Text="{Binding StatusMessage}" Foreground="Green" FontSize="14"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontSize="14" TextWrapping="Wrap"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

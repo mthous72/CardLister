@@ -1,0 +1,153 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="900"
+             x:Class="CardLister.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="24" MaxWidth="700">
+
+            <TextBlock Text="Settings" FontSize="24" FontWeight="Bold"/>
+
+            <!-- API Connections -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="API Connections" FontSize="18" FontWeight="SemiBold"/>
+
+                    <!-- OpenRouter -->
+                    <TextBlock Text="OpenRouter API Key" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Test" Margin="8,0,0,0"
+                                Command="{Binding TestOpenRouterCommand}"
+                                IsEnabled="{Binding !IsTestingOpenRouter}"/>
+                        <TextBox Text="{Binding OpenRouterApiKey}"
+                                 PasswordChar="*" Watermark="sk-or-v1-..."/>
+                    </DockPanel>
+                    <TextBlock Text="{Binding OpenRouterStatus}" FontSize="12" Opacity="0.7"/>
+
+                    <!-- ImgBB -->
+                    <TextBlock Text="ImgBB API Key" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Test" Margin="8,0,0,0"
+                                Command="{Binding TestImgBBCommand}"
+                                IsEnabled="{Binding !IsTestingImgBB}"/>
+                        <TextBox Text="{Binding ImgBBApiKey}"
+                                 PasswordChar="*" Watermark="Your ImgBB API key"/>
+                    </DockPanel>
+                    <TextBlock Text="{Binding ImgBBStatus}" FontSize="12" Opacity="0.7"/>
+
+                    <!-- Model Selection -->
+                    <TextBlock Text="Default AI Model" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                    <ComboBox ItemsSource="{Binding ModelOptions}"
+                              SelectedItem="{Binding DefaultModel}"
+                              HorizontalAlignment="Stretch"/>
+                    <TextBlock Text="Free vision models — auto falls back to next model on rate limit"
+                               FontSize="11" Opacity="0.5" Margin="0,-6,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Card Scanning -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Card Scanning" FontSize="18" FontWeight="SemiBold"/>
+
+                    <CheckBox IsChecked="{Binding EnableVariationVerification}"
+                              Content="Verify variations against set checklists"/>
+
+                    <CheckBox IsChecked="{Binding AutoApplyHighConfidenceSuggestions}"
+                              Content="Auto-apply high-confidence corrections"
+                              IsEnabled="{Binding EnableVariationVerification}"/>
+
+                    <CheckBox IsChecked="{Binding RunConfirmationPass}"
+                              Content="Run confirmation pass for ambiguous cards"
+                              IsEnabled="{Binding EnableVariationVerification}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Preferences -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Preferences" FontSize="18" FontWeight="SemiBold"/>
+
+                    <CheckBox IsChecked="{Binding IsEbaySeller}" Content="I sell on eBay (enables Terapeak links)"/>
+
+                    <TextBlock Text="Default Shipping Profile" FontWeight="SemiBold"/>
+                    <ComboBox SelectedItem="{Binding DefaultShippingProfile}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="4 oz"/>
+                        <ComboBoxItem Content="8 oz"/>
+                        <ComboBoxItem Content="1 lb"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Default Condition" FontWeight="SemiBold"/>
+                    <ComboBox SelectedItem="{Binding DefaultCondition}" HorizontalAlignment="Stretch">
+                        <ComboBoxItem Content="Near Mint"/>
+                        <ComboBoxItem Content="Like New"/>
+                        <ComboBoxItem Content="Very Good"/>
+                        <ComboBoxItem Content="Good"/>
+                        <ComboBoxItem Content="Acceptable"/>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Financial Settings -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Financial Settings" FontSize="18" FontWeight="SemiBold"/>
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="16">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Whatnot Fee %" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WhatnotFeePercent}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="eBay Fee %" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EbayFeePercent}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Default Shipping (PWE)" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DefaultShippingCostPwe}"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Default Shipping (BMWT)" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DefaultShippingCostBmwt}"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Price Staleness (days)" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PriceStalenessThresholdDays}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Your Data -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Your Data" FontSize="18" FontWeight="SemiBold"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Cards in database:" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding CardCount}" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Database:" VerticalAlignment="Center" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="{Binding DbPath}" FontSize="12" Opacity="0.7" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Button Content="Open Data Folder" Command="{Binding OpenDataFolderCommand}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Save -->
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}"
+                        Classes="accent" Padding="24,10"/>
+                <TextBlock Text="{Binding SaveMessage}" VerticalAlignment="Center"
+                           Foreground="Green" FontSize="14"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using CardLister.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -58,6 +59,14 @@ namespace CardLister.ViewModels
                 "Reprice" => _services.GetRequiredService<RepriceViewModel>(),
                 _ => CurrentPage
             };
+        }
+
+        public async Task NavigateToEditCardAsync(int cardId)
+        {
+            var editVm = _services.GetRequiredService<EditCardViewModel>();
+            await editVm.LoadCardAsync(cardId);
+            CurrentPageName = "EditCard";
+            CurrentPage = editVm;
         }
     }
 }

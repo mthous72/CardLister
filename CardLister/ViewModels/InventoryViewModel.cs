@@ -58,6 +58,14 @@ namespace CardLister.ViewModels
         }
 
         [RelayCommand]
+        private async Task EditSelectedAsync()
+        {
+            if (SelectedCard == null) return;
+            if (App.Services.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)
+                await mainVm.NavigateToEditCardAsync(SelectedCard.Id);
+        }
+
+        [RelayCommand]
         private void NavigateToReprice()
         {
             // Navigate via the shared App.Services provider to get the main window's DataContext

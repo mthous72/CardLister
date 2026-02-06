@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using CardLister.Models;
 using CardLister.Services;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace CardLister.Data
@@ -15,15 +16,15 @@ namespace CardLister.Data
     {
         public static async Task SeedIfEmptyAsync(CardListerDbContext db)
         {
-            if (db.SetChecklists.Any())
-                return;
-
             var assembly = Assembly.GetExecutingAssembly();
             var resourceNames = assembly.GetManifestResourceNames()
                 .Where(n => n.Contains("SeedData") && n.EndsWith(".json"))
                 .ToList();
 
+            if (resourceNames.Count == 0) return;
+
             var now = DateTime.UtcNow;
+            int added = 0;
 
             foreach (var resourceName in resourceNames)
             {
@@ -36,6 +37,15 @@ namespace CardLister.Data
                     var json = await reader.ReadToEndAsync();
                     var seedData = JsonSerializer.Deserialize<SeedChecklistData>(json);
                     if (seedData == null) continue;
+
+                    // Skip if this exact set already exists in the database
+                    var exists = await db.SetChecklists.AnyAsync(s =>
+                        s.Manufacturer == seedData.Manufacturer &&
+                        s.Brand == seedData.Brand &&
+                        s.Year == seedData.Year &&
+                        s.Sport == seedData.Sport);
+
+                    if (exists) continue;
 
                     var checklist = new SetChecklist
                     {
@@ -59,6 +69,7 @@ namespace CardLister.Data
                     };
 
                     db.SetChecklists.Add(checklist);
+                    added++;
                 }
                 catch (Exception ex)
                 {
@@ -66,7 +77,11 @@ namespace CardLister.Data
                 }
             }
 
-            await db.SaveChangesAsync();
+            if (added > 0)
+            {
+                await db.SaveChangesAsync();
+                Log.Information("Seeded {Count} new checklists from embedded resources", added);
+            }
         }
     }
 }

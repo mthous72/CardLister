@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CardLister.Models;
@@ -32,6 +33,11 @@ namespace CardLister.ViewModels
         [ObservableProperty] private bool _isVerifying;
         [ObservableProperty] private string _verificationStatus = "";
 
+        // Model selection
+        [ObservableProperty] private string _selectedModel = string.Empty;
+
+        public List<string> ModelOptions { get; } = new(OpenRouterScannerService.FreeVisionModels);
+
         public ScanViewModel(
             IScannerService scannerService,
             ICardRepository cardRepository,
@@ -48,6 +54,10 @@ namespace CardLister.ViewModels
             _variationVerifier = variationVerifier;
             _checklistLearningService = checklistLearningService;
             _logger = logger;
+
+            // Initialize from settings
+            var settings = _settingsService.Load();
+            _selectedModel = settings.DefaultModel;
         }
 
         [RelayCommand]
@@ -93,7 +103,7 @@ namespace CardLister.ViewModels
             try
             {
                 var settings = _settingsService.Load();
-                var scanResult = await _scannerService.ScanCardAsync(ImagePath, ImagePathBack, settings.DefaultModel);
+                var scanResult = await _scannerService.ScanCardAsync(ImagePath, ImagePathBack, SelectedModel);
                 scanResult.Card.ImagePathFront = ImagePath;
                 if (!string.IsNullOrEmpty(ImagePathBack))
                     scanResult.Card.ImagePathBack = ImagePathBack;

@@ -263,6 +263,40 @@ namespace CardLister.ViewModels
             UpdateSummary();
         }
 
+        [RelayCommand(CanExecute = nameof(HasSelectedItem))]
+        private async Task RepriceSelectedAsync()
+        {
+            if (SelectedCard == null) return;
+
+            try
+            {
+                // Reset card to Draft status for repricing
+                SelectedCard.Status = CardStatus.Draft;
+
+                // Clear pricing data to force fresh lookup
+                SelectedCard.EstimatedValue = null;
+                SelectedCard.ListingPrice = null;
+                SelectedCard.PriceSource = null;
+                SelectedCard.PriceDate = null;
+
+                await _cardRepository.UpdateCardAsync(SelectedCard);
+
+                _logger.LogInformation("Card {CardId} ({Player}) moved to Draft for repricing",
+                    SelectedCard.Id, SelectedCard.PlayerName);
+
+                ExportMessage = $"Card moved to pricing queue. Go to Pricing tab to reprice.";
+
+                // Refresh the view
+                ApplyFilters();
+                UpdateSummary();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reprice card {CardId}", SelectedCard.Id);
+                ExportError = $"Failed to move card to pricing: {ex.Message}";
+            }
+        }
+
         // === Selection Commands ===
 
         [RelayCommand]
@@ -290,6 +324,7 @@ namespace CardLister.ViewModels
             EditSelectedCommand.NotifyCanExecuteChanged();
             RequestDeleteSelectedCommand.NotifyCanExecuteChanged();
             OpenSoldDialogCommand.NotifyCanExecuteChanged();
+            RepriceSelectedCommand.NotifyCanExecuteChanged();
         }
 
         // === Export Commands ===

@@ -127,6 +127,9 @@
                 <Button Content="Edit Card" Command="{Binding EditSelectedCommand}"
                         IsEnabled="{Binding HasSelectedItem}"
                         Padding="12,4"/>
+                <Button Content="Reprice Card" Command="{Binding RepriceSelectedCommand}"
+                        IsEnabled="{Binding HasSelectedItem}"
+                        Padding="12,4"/>
                 <Button Content="Delete Selected" Command="{Binding RequestDeleteSelectedCommand}"
                         IsEnabled="{Binding HasSelectedItem}"
                         Padding="12,4"/>

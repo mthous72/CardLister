@@ -89,6 +89,7 @@ namespace CardLister
                 services.AddTransient<IExportService, CsvExportService>();
                 services.AddTransient<IVariationVerifier, VariationVerifierService>();
                 services.AddSingleton<IChecklistLearningService, ChecklistLearningService>();
+                services.AddSingleton<ISoldPriceService, Point130SoldPriceService>();
 
                 // ViewModels
                 services.AddSingleton<MainWindowViewModel>();

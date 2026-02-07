@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CardLister.Data;
 using CardLister.Models;
+using CardLister.Models.Enums;
 using CardLister.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -51,6 +53,18 @@ namespace CardLister.ViewModels
         [ObservableProperty] private int _cardCount;
         [ObservableProperty] private string _dbPath = string.Empty;
 
+        // Title Templates (SEO-optimized for each platform)
+        [ObservableProperty] private string _whatnotTitleTemplate = string.Empty;
+        [ObservableProperty] private string _ebayTitleTemplate = string.Empty;
+        [ObservableProperty] private string _comcTitleTemplate = string.Empty;
+        [ObservableProperty] private string _genericTitleTemplate = string.Empty;
+        [ObservableProperty] private ExportPlatform _activeExportPlatform = ExportPlatform.Whatnot;
+        [ObservableProperty] private string _templateValidationMessage = string.Empty;
+        [ObservableProperty] private string _templatePreview = string.Empty;
+
+        public List<ExportPlatform> ExportPlatformOptions { get; } = Enum.GetValues<ExportPlatform>().ToList();
+        public string PlaceholderHelpText => TitleTemplateService.GetPlaceholderHelpText();
+
         // Save feedback
         [ObservableProperty] private string _saveMessage = string.Empty;
 
@@ -84,6 +98,13 @@ namespace CardLister.ViewModels
             DefaultShippingCostBmwt = s.DefaultShippingCostBmwt;
             PriceStalenessThresholdDays = s.PriceStalenessThresholdDays;
 
+            // Title Templates
+            WhatnotTitleTemplate = s.WhatnotTitleTemplate;
+            EbayTitleTemplate = s.EbayTitleTemplate;
+            ComcTitleTemplate = s.ComcTitleTemplate;
+            GenericTitleTemplate = s.GenericTitleTemplate;
+            ActiveExportPlatform = s.ActiveExportPlatform;
+
             OpenRouterStatus = string.IsNullOrWhiteSpace(OpenRouterApiKey) ? "Not configured" : "Configured (not tested)";
             ImgBBStatus = string.IsNullOrWhiteSpace(ImgBBApiKey) ? "Not configured" : "Configured (not tested)";
 
@@ -107,6 +128,26 @@ namespace CardLister.ViewModels
         [RelayCommand]
         private void SaveSettings()
         {
+            // Validate all templates before saving
+            var templates = new[]
+            {
+                ("Whatnot", WhatnotTitleTemplate),
+                ("eBay", EbayTitleTemplate),
+                ("COMC", ComcTitleTemplate),
+                ("Generic", GenericTitleTemplate)
+            };
+
+            foreach (var (name, template) in templates)
+            {
+                var (isValid, errorMessage) = TitleTemplateService.ValidateTemplate(template);
+                if (!isValid)
+                {
+                    SaveMessage = $"{name} template error: {errorMessage}";
+                    TemplateValidationMessage = SaveMessage;
+                    return;
+                }
+            }
+
             var s = new AppSettings
             {
                 OpenRouterApiKey = OpenRouterApiKey,
@@ -123,11 +164,17 @@ namespace CardLister.ViewModels
                 EbayFeePercent = EbayFeePercent,
                 DefaultShippingCostPwe = DefaultShippingCostPwe,
                 DefaultShippingCostBmwt = DefaultShippingCostBmwt,
-                PriceStalenessThresholdDays = PriceStalenessThresholdDays
+                PriceStalenessThresholdDays = PriceStalenessThresholdDays,
+                WhatnotTitleTemplate = WhatnotTitleTemplate,
+                EbayTitleTemplate = EbayTitleTemplate,
+                ComcTitleTemplate = ComcTitleTemplate,
+                GenericTitleTemplate = GenericTitleTemplate,
+                ActiveExportPlatform = ActiveExportPlatform
             };
 
             _settingsService.Save(s);
             SaveMessage = "Settings saved!";
+            TemplateValidationMessage = string.Empty;
         }
 
         [RelayCommand]
@@ -161,6 +208,64 @@ namespace CardLister.ViewModels
             if (folder != null && Directory.Exists(folder))
             {
                 _browserService.OpenUrl(folder);
+            }
+        }
+
+        [RelayCommand]
+        private void ResetTitleTemplates()
+        {
+            WhatnotTitleTemplate = TitleTemplateService.GetDefaultTemplate(ExportPlatform.Whatnot);
+            EbayTitleTemplate = TitleTemplateService.GetDefaultTemplate(ExportPlatform.eBay);
+            ComcTitleTemplate = TitleTemplateService.GetDefaultTemplate(ExportPlatform.COMC);
+            GenericTitleTemplate = TitleTemplateService.GetDefaultTemplate(ExportPlatform.Generic);
+            TemplateValidationMessage = "Templates reset to defaults";
+        }
+
+        [RelayCommand]
+        private void ValidateCurrentTemplate()
+        {
+            var template = ActiveExportPlatform switch
+            {
+                ExportPlatform.Whatnot => WhatnotTitleTemplate,
+                ExportPlatform.eBay => EbayTitleTemplate,
+                ExportPlatform.COMC => ComcTitleTemplate,
+                _ => GenericTitleTemplate
+            };
+
+            var (isValid, errorMessage) = TitleTemplateService.ValidateTemplate(template);
+            TemplateValidationMessage = isValid ? "✓ Template is valid" : $"✗ {errorMessage}";
+        }
+
+        [RelayCommand]
+        private async Task GeneratePreviewAsync()
+        {
+            // Get a sample card from the database for preview
+            try
+            {
+                using var scope = _services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<CardListerDbContext>();
+                var sampleCard = await db.Cards.FirstOrDefaultAsync();
+
+                if (sampleCard == null)
+                {
+                    TemplatePreview = "No cards in database. Add a card to see preview.";
+                    return;
+                }
+
+                var template = ActiveExportPlatform switch
+                {
+                    ExportPlatform.Whatnot => WhatnotTitleTemplate,
+                    ExportPlatform.eBay => EbayTitleTemplate,
+                    ExportPlatform.COMC => ComcTitleTemplate,
+                    _ => GenericTitleTemplate
+                };
+
+                var titleService = new TitleTemplateService();
+                TemplatePreview = $"Preview: {titleService.GenerateTitle(sampleCard, template)}";
+            }
+            catch (Exception ex)
+            {
+                TemplatePreview = $"Error generating preview: {ex.Message}";
             }
         }
     }

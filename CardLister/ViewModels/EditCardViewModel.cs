@@ -71,32 +71,45 @@ namespace CardLister.ViewModels
                 ErrorMessage = null;
                 SuccessMessage = null;
 
-                var updated = CardDetail.ToCard();
+                // Update the tracked entity's properties instead of creating a new instance
+                _originalCard.PlayerName = CardDetail.PlayerName ?? string.Empty;
+                _originalCard.Sport = CardDetail.Sport;
+                _originalCard.Brand = CardDetail.Brand;
+                _originalCard.Manufacturer = CardDetail.Manufacturer;
+                _originalCard.Year = CardDetail.Year;
+                _originalCard.CardNumber = CardDetail.CardNumber;
+                _originalCard.Team = CardDetail.Team;
+                _originalCard.SetName = CardDetail.SetName;
+                _originalCard.VariationType = CardDetail.VariationType;
+                _originalCard.ParallelName = CardDetail.ParallelName;
+                _originalCard.SerialNumbered = CardDetail.SerialNumbered;
+                _originalCard.IsShortPrint = CardDetail.IsShortPrint;
+                _originalCard.IsSSP = CardDetail.IsSSP;
+                _originalCard.IsRookie = CardDetail.IsRookie;
+                _originalCard.IsAuto = CardDetail.IsAuto;
+                _originalCard.IsRelic = CardDetail.IsRelic;
+                _originalCard.Condition = CardDetail.Condition;
+                _originalCard.IsGraded = CardDetail.IsGraded;
+                _originalCard.GradeCompany = CardDetail.GradeCompany;
+                _originalCard.GradeValue = CardDetail.GradeValue;
+                _originalCard.CertNumber = CardDetail.CertNumber;
+                _originalCard.AutoGrade = CardDetail.AutoGrade;
+                _originalCard.CostBasis = CardDetail.CostBasis;
+                _originalCard.CostSource = CardDetail.CostSource;
+                _originalCard.CostDate = CardDetail.CostDate;
+                _originalCard.CostNotes = CardDetail.CostNotes;
+                _originalCard.Quantity = CardDetail.Quantity;
+                _originalCard.ListingType = CardDetail.ListingType;
+                _originalCard.Offerable = CardDetail.Offerable;
+                _originalCard.ShippingProfile = CardDetail.ShippingProfile;
+                _originalCard.WhatnotCategory = CardDetail.WhatnotCategory;
+                _originalCard.WhatnotSubcategory = CardDetail.WhatnotSubcategory;
+                _originalCard.Notes = CardDetail.Notes;
+                _originalCard.UpdatedAt = DateTime.UtcNow;
 
-                // Preserve fields that the form doesn't edit
-                updated.Id = _originalCard.Id;
-                updated.Status = _originalCard.Status;
-                updated.CreatedAt = _originalCard.CreatedAt;
-                updated.UpdatedAt = DateTime.UtcNow;
-                updated.ImagePathFront = _originalCard.ImagePathFront;
-                updated.ImagePathBack = _originalCard.ImagePathBack;
-                updated.ImageUrl1 = _originalCard.ImageUrl1;
-                updated.ImageUrl2 = _originalCard.ImageUrl2;
-                updated.EstimatedValue = _originalCard.EstimatedValue;
-                updated.PriceSource = _originalCard.PriceSource;
-                updated.PriceDate = _originalCard.PriceDate;
-                updated.ListingPrice = _originalCard.ListingPrice;
-                updated.PriceCheckCount = _originalCard.PriceCheckCount;
-                updated.SalePrice = _originalCard.SalePrice;
-                updated.SaleDate = _originalCard.SaleDate;
-                updated.SalePlatform = _originalCard.SalePlatform;
-                updated.FeesPaid = _originalCard.FeesPaid;
-                updated.ShippingCost = _originalCard.ShippingCost;
-                updated.NetProfit = _originalCard.NetProfit;
+                await _cardRepository.UpdateCardAsync(_originalCard);
 
-                await _cardRepository.UpdateCardAsync(updated);
-
-                _logger.LogInformation("Card {CardId} updated: {PlayerName}", updated.Id, updated.PlayerName);
+                _logger.LogInformation("Card {CardId} updated: {PlayerName}", _originalCard.Id, _originalCard.PlayerName);
 
                 // Navigate back to Inventory
                 if (App.Services.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)

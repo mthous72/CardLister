@@ -63,16 +63,16 @@
                     <CheckBox IsChecked="{Binding IsEbaySeller}" Content="I sell on eBay (enables Terapeak links)"/>
                     <TextBlock Text="Default Shipping Profile"/>
                     <ComboBox SelectedItem="{Binding DefaultShippingProfile}" HorizontalAlignment="Stretch">
-                        <ComboBoxItem Content="4 oz"/>
-                        <ComboBoxItem Content="8 oz"/>
-                        <ComboBoxItem Content="1 lb"/>
+                        <x:String>4 oz</x:String>
+                        <x:String>8 oz</x:String>
+                        <x:String>1 lb</x:String>
                     </ComboBox>
                     <TextBlock Text="Default Condition"/>
                     <ComboBox SelectedItem="{Binding DefaultCondition}" HorizontalAlignment="Stretch">
-                        <ComboBoxItem Content="Near Mint"/>
-                        <ComboBoxItem Content="Like New"/>
-                        <ComboBoxItem Content="Very Good"/>
-                        <ComboBoxItem Content="Good"/>
+                        <x:String>Near Mint</x:String>
+                        <x:String>Like New</x:String>
+                        <x:String>Very Good</x:String>
+                        <x:String>Good</x:String>
                     </ComboBox>
                 </StackPanel>
 

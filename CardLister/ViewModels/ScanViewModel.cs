@@ -6,6 +6,7 @@ using CardLister.Models.Enums;
 using CardLister.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace CardLister.ViewModels
 {
@@ -16,6 +17,8 @@ namespace CardLister.ViewModels
         private readonly IFileDialogService _fileDialogService;
         private readonly ISettingsService _settingsService;
         private readonly IVariationVerifier _variationVerifier;
+        private readonly IChecklistLearningService _checklistLearningService;
+        private readonly ILogger<ScanViewModel> _logger;
 
         private ScanResult? _lastScanResult;
 
@@ -34,13 +37,17 @@ namespace CardLister.ViewModels
             ICardRepository cardRepository,
             IFileDialogService fileDialogService,
             ISettingsService settingsService,
-            IVariationVerifier variationVerifier)
+            IVariationVerifier variationVerifier,
+            IChecklistLearningService checklistLearningService,
+            ILogger<ScanViewModel> logger)
         {
             _scannerService = scannerService;
             _cardRepository = cardRepository;
             _fileDialogService = fileDialogService;
             _settingsService = settingsService;
             _variationVerifier = variationVerifier;
+            _checklistLearningService = checklistLearningService;
+            _logger = logger;
         }
 
         [RelayCommand]
@@ -143,6 +150,7 @@ namespace CardLister.ViewModels
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError(ex, "Verification failed for {ImagePath}", ImagePath);
                         VerificationStatus = $"Verification error: {ex.Message}";
                     }
                     finally
@@ -153,6 +161,7 @@ namespace CardLister.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Scan failed for {ImagePath}", ImagePath);
                 ErrorMessage = $"Scan failed: {ex.Message}";
             }
             finally
@@ -228,6 +237,9 @@ namespace CardLister.ViewModels
                 card.Status = Models.Enums.CardStatus.Draft;
                 await _cardRepository.InsertCardAsync(card);
 
+                // Learn from saved card (fire-and-forget)
+                _ = _checklistLearningService.LearnFromCardAsync(card);
+
                 // Persist custom grading company if new
                 if (card.IsGraded && !string.IsNullOrEmpty(card.GradeCompany))
                 {
@@ -246,6 +258,7 @@ namespace CardLister.ViewModels
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Save card failed");
                 ErrorMessage = $"Save failed: {ex.Message}";
             }
         }

@@ -1,0 +1,224 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CardLister.ViewModels"
+             xmlns:conv="using:CardLister.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
+             x:Class="CardLister.Views.EditCardView"
+             x:DataType="vm:EditCardViewModel">
+
+    <UserControl.Resources>
+        <conv:FilePathToBitmapConverter x:Key="FilePathToBitmapConverter"/>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="24,24,24,8">
+            <TextBlock Text="Edit Card" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Update card details and save changes"
+                       Opacity="0.6" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content: Two columns -->
+        <Grid Grid.Row="1" ColumnDefinitions="350,*" Margin="24,8">
+
+            <!-- Left Column: Image Previews -->
+            <ScrollViewer Grid.Column="0" Margin="0,0,12,0">
+                <StackPanel Spacing="8">
+
+                    <!-- Front Image -->
+                    <Border BorderBrush="{DynamicResource SystemBaseLowColor}"
+                            BorderThickness="2" CornerRadius="8"
+                            Background="{DynamicResource SystemChromeLowColor}">
+                        <StackPanel>
+                            <!-- No image placeholder -->
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Spacing="12" MinHeight="200"
+                                        IsVisible="{Binding ImagePathFront, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                                <TextBlock Text="No Front Image" FontSize="14" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" Opacity="0.5" Margin="0,80,0,80"/>
+                            </StackPanel>
+
+                            <!-- Image preview -->
+                            <StackPanel IsVisible="{Binding ImagePathFront, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                        Spacing="8" Margin="8">
+                                <TextBlock Text="Front" FontSize="12" FontWeight="SemiBold" Opacity="0.6"
+                                           HorizontalAlignment="Center"/>
+                                <Image Source="{Binding ImagePathFront, Converter={StaticResource FilePathToBitmapConverter}}"
+                                       MaxHeight="300" Stretch="Uniform"
+                                       HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Back Image -->
+                    <Border BorderBrush="{DynamicResource SystemBaseLowColor}"
+                            BorderThickness="1" CornerRadius="8" Opacity="0.8"
+                            Background="{DynamicResource SystemChromeLowColor}">
+                        <StackPanel>
+                            <!-- No back image -->
+                            <TextBlock Text="No Back Image" FontSize="12" Opacity="0.4"
+                                       HorizontalAlignment="Center" Margin="0,20,0,20"
+                                       IsVisible="{Binding ImagePathBack, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+
+                            <!-- Back image preview -->
+                            <StackPanel IsVisible="{Binding ImagePathBack, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                        Spacing="8" Margin="8">
+                                <TextBlock Text="Back" FontSize="12" FontWeight="SemiBold" Opacity="0.6"
+                                           HorizontalAlignment="Center"/>
+                                <Image Source="{Binding ImagePathBack, Converter={StaticResource FilePathToBitmapConverter}}"
+                                       MaxHeight="200" Stretch="Uniform"
+                                       HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right Column: Card Detail Form -->
+            <ScrollViewer Grid.Column="1">
+                <StackPanel Spacing="8" Margin="12,0,0,0">
+
+                    <!-- Loading -->
+                    <StackPanel IsVisible="{Binding IsLoading}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Spacing="12" Margin="0,100,0,0">
+                        <ProgressBar IsIndeterminate="True" Width="120"/>
+                        <TextBlock Text="Loading card..." FontSize="14" Opacity="0.6"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Card Detail Form -->
+                    <Border IsVisible="{Binding CardDetail, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="8"
+                                x:DataType="vm:CardDetailViewModel"
+                                DataContext="{Binding CardDetail}">
+
+                        <TextBlock Text="Card Details" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                        <!-- Identity -->
+                        <TextBlock Text="Player Name" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding PlayerName}" Watermark="Player Name"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Card #"/>
+                            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding CardNumber}" Watermark="#"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Year"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Year}" Watermark="2024"/>
+                        </Grid>
+
+                        <TextBlock Text="Sport"/>
+                        <ComboBox SelectedItem="{Binding Sport}"
+                                  ItemsSource="{x:Static vm:CardDetailViewModel.SportOptions}"
+                                  HorizontalAlignment="Stretch"/>
+
+                        <!-- Manufacturer -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Manufacturer"/>
+                            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding Manufacturer}" Watermark="Panini"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Brand"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Brand}" Watermark="Prizm"/>
+                        </Grid>
+
+                        <TextBlock Text="Team"/>
+                        <TextBox Text="{Binding Team}" Watermark="Team Name"/>
+
+                        <!-- Variation -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Variation Type"/>
+                            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding VariationType}" Watermark="Base"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Parallel"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ParallelName}" Watermark="Silver"/>
+                        </Grid>
+
+                        <TextBlock Text="Serial Numbered"/>
+                        <TextBox Text="{Binding SerialNumbered}" Watermark="/99"/>
+
+                        <!-- Checkboxes -->
+                        <WrapPanel Margin="0,4">
+                            <CheckBox IsChecked="{Binding IsRookie}" Content="Rookie" Margin="0,0,16,0"/>
+                            <CheckBox IsChecked="{Binding IsAuto}" Content="Auto" Margin="0,0,16,0"/>
+                            <CheckBox IsChecked="{Binding IsRelic}" Content="Relic" Margin="0,0,16,0"/>
+                            <CheckBox IsChecked="{Binding IsShortPrint}" Content="SP" Margin="0,0,16,0"/>
+                            <CheckBox IsChecked="{Binding IsSSP}" Content="SSP"/>
+                        </WrapPanel>
+
+                        <!-- Condition -->
+                        <TextBlock Text="Condition"/>
+                        <ComboBox SelectedItem="{Binding Condition}"
+                                  ItemsSource="{x:Static vm:CardDetailViewModel.ConditionOptions}"
+                                  HorizontalAlignment="Stretch"/>
+
+                        <!-- Grading -->
+                        <CheckBox IsChecked="{Binding IsGraded}" Content="Graded" Margin="0,8,0,0"/>
+
+                        <StackPanel IsVisible="{Binding IsGraded}" Spacing="4">
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Grading Company"/>
+                                <ComboBox Grid.Row="1" Grid.Column="0" IsEditable="True"
+                                          x:CompileBindings="False"
+                                          Text="{Binding GradeCompany}"
+                                          ItemsSource="{Binding GradingCompanyOptions}"
+                                          HorizontalAlignment="Stretch"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Card Grade"/>
+                                <ComboBox Grid.Row="1" Grid.Column="1"
+                                          x:CompileBindings="False"
+                                          SelectedItem="{Binding GradeValue}"
+                                          ItemsSource="{Binding GradeOptions}"
+                                          HorizontalAlignment="Stretch"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Auto Grade"/>
+                                <ComboBox Grid.Row="1" Grid.Column="0"
+                                          x:CompileBindings="False"
+                                          SelectedItem="{Binding AutoGrade}"
+                                          ItemsSource="{Binding AutoGradeOptions}"
+                                          HorizontalAlignment="Stretch"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Cert #"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CertNumber}" Watermark="Certificate number"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Cost Basis -->
+                        <TextBlock Text="Cost Basis" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="4">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Cost ($)"/>
+                            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding CostBasis}" Watermark="0.00"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Source"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1"
+                                      SelectedItem="{Binding CostSource}"
+                                      ItemsSource="{x:Static vm:CardDetailViewModel.CostSourceOptions}"
+                                      HorizontalAlignment="Stretch"/>
+                        </Grid>
+
+                        <TextBlock Text="Notes"/>
+                        <TextBox Text="{Binding Notes}" Watermark="Optional notes..." AcceptsReturn="True" MinHeight="50"/>
+                    </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Bottom Button Row -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
+                    Margin="24,8,24,24" HorizontalAlignment="Left">
+            <Button Content="Save Changes" Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding CardDetail, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Classes="accent" Padding="20,10"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}"
+                    Padding="20,10"/>
+
+            <!-- Messages -->
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                       VerticalAlignment="Center" Margin="12,0,0,0"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="Green"
+                       VerticalAlignment="Center" Margin="12,0,0,0"
+                       IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

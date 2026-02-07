@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using CardLister.Models.Enums;
+using CardLister.Services;
 
 namespace CardLister.Models
 {
@@ -20,5 +22,15 @@ namespace CardLister.Models
         public bool RunConfirmationPass { get; set; } = true;
         public bool EnableChecklistLearning { get; set; } = true;
         public List<string> CustomGradingCompanies { get; set; } = new();
+
+        // Title Templates - SEO-optimized for each platform
+        // Based on WTSCards research on platform search algorithms
+        public string WhatnotTitleTemplate { get; set; } = TitleTemplateService.GetDefaultTemplate(ExportPlatform.Whatnot);
+        public string EbayTitleTemplate { get; set; } = TitleTemplateService.GetDefaultTemplate(ExportPlatform.eBay);
+        public string ComcTitleTemplate { get; set; } = TitleTemplateService.GetDefaultTemplate(ExportPlatform.COMC);
+        public string GenericTitleTemplate { get; set; } = TitleTemplateService.GetDefaultTemplate(ExportPlatform.Generic);
+
+        // Active export platform (used for exports)
+        public ExportPlatform ActiveExportPlatform { get; set; } = ExportPlatform.Whatnot;
     }
 }

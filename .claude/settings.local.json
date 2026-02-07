@@ -39,7 +39,10 @@
       "WebFetch(domain:130point.com)",
       "Bash(curl:*)",
       "Bash(powershell -Command:*)",
-      "Bash(timeout 10 dotnet run:*)"
+      "Bash(timeout 10 dotnet run:*)",
+      "Bash(git tag:*)",
+      "Bash(gh release create:*)",
+      "Bash(gh release:*)"
     ]
   }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CardLister.Models;
+using CardLister.Models.Enums;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -12,24 +13,44 @@ namespace CardLister.Services
 {
     public class CsvExportService : IExportService
     {
+        private readonly ISettingsService _settingsService;
+        private readonly TitleTemplateService _titleTemplateService;
+
+        public CsvExportService(ISettingsService settingsService)
+        {
+            _settingsService = settingsService;
+            _titleTemplateService = new TitleTemplateService();
+        }
+
         public string GenerateTitle(Card card)
         {
-            var parts = new List<string>();
+            // Use the active export platform's template
+            var settings = _settingsService.Load();
+            var template = GetTemplateForPlatform(settings.ActiveExportPlatform, settings);
 
-            if (card.Year.HasValue) parts.Add(card.Year.Value.ToString());
-            if (!string.IsNullOrEmpty(card.Manufacturer)) parts.Add(card.Manufacturer);
-            if (!string.IsNullOrEmpty(card.Brand)) parts.Add(card.Brand);
-            if (!string.IsNullOrEmpty(card.PlayerName)) parts.Add(card.PlayerName);
-            if (!string.IsNullOrEmpty(card.ParallelName)) parts.Add(card.ParallelName);
-            if (card.IsRookie) parts.Add("RC");
-            if (card.IsAuto) parts.Add("Auto");
-            if (card.IsRelic) parts.Add("Relic");
-            if (!string.IsNullOrEmpty(card.SerialNumbered)) parts.Add(card.SerialNumbered);
-            if (card.IsGraded && !string.IsNullOrEmpty(card.GradeCompany) && !string.IsNullOrEmpty(card.GradeValue))
-                parts.Add($"{card.GradeCompany} {card.GradeValue}");
-            if (!string.IsNullOrEmpty(card.CardNumber)) parts.Add($"#{card.CardNumber}");
+            return _titleTemplateService.GenerateTitle(card, template);
+        }
 
-            return string.Join(" ", parts);
+        /// <summary>
+        /// Generate title for a specific platform (overload for flexibility)
+        /// </summary>
+        public string GenerateTitle(Card card, ExportPlatform platform)
+        {
+            var settings = _settingsService.Load();
+            var template = GetTemplateForPlatform(platform, settings);
+
+            return _titleTemplateService.GenerateTitle(card, template);
+        }
+
+        private string GetTemplateForPlatform(ExportPlatform platform, AppSettings settings)
+        {
+            return platform switch
+            {
+                ExportPlatform.Whatnot => settings.WhatnotTitleTemplate,
+                ExportPlatform.eBay => settings.EbayTitleTemplate,
+                ExportPlatform.COMC => settings.ComcTitleTemplate,
+                ExportPlatform.Generic or _ => settings.GenericTitleTemplate
+            };
         }
 
         public string GenerateDescription(Card card)

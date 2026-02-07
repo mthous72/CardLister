@@ -21,7 +21,11 @@ Pre-built executables are available on the [Releases page](https://github.com/mt
 These features are implemented and functional today:
 
 - **AI Card Scanning** -- Browse for a photo of any sports card (front + optional back) and AI vision extracts player name, year, set, brand, parallel, serial numbering, and more. Uses free OpenRouter vision models with automatic fallback across 11 models on rate limiting.
-- **Variation Verification** -- Cross-references AI scan results against local set checklists to catch hallucinated parallels, correct player names, and validate card numbers. Includes a targeted confirmation pass for ambiguous results. Currently ships with 4 seeded checklists (2023 Prizm Football/Basketball, 2024 Topps Chrome Baseball, 2023 Donruss Football).
+- **Bulk Scan** -- Select multiple card images at once, optionally pair front/back images, and scan them all in one batch with progress tracking and cancellation support. Rate-limiting built in for free-tier models.
+- **Variation Verification** -- Cross-references AI scan results against local set checklists to catch hallucinated parallels, correct player names, and validate card numbers. Includes a targeted confirmation pass for ambiguous results. **Currently ships with 97 seeded checklists** covering major sets from 2017-2024:
+  - **Football (48 sets):** Panini Prizm, Donruss, Donruss Optic, Mosaic, Phoenix, Select (2017-2024)
+  - **Basketball (21 sets):** Panini Prizm, Donruss Optic, Mosaic (2018-2024)
+  - **Baseball (28 sets):** Topps Chrome, Bowman, Bowman Chrome, Topps (2018-2024)
 - **Inventory Grid** -- Browse, search, filter, and sort your card collection in a DataGrid. Track card status (Draft, Priced, Listed, Sold) and price staleness indicators.
 - **Pricing Workflow** -- Step through unpriced cards one at a time with Terapeak and eBay sold listing links that open in your browser. Enter market value, get a suggested list price, and save with cost basis tracking.
 - **Stale Price Repricing** -- Cards whose price is older than a configurable threshold (default 30 days) are flagged. Walk through them to keep or update prices.
@@ -39,9 +43,9 @@ These features are implemented and functional today:
 
 This is an MVP -- here's what's rough or missing:
 
-- **Limited checklist data** -- Only 4 sets are seeded for variation verification. Cards from other sets will scan fine but won't get checklist verification.
+- **Checklist data focused on recent years** -- 97 sets are seeded (2017-2024 for major Panini/Topps releases), but older sets and niche brands are not included. Cards from unseeded sets will scan fine but won't get checklist verification.
 - **No drag-and-drop** -- Images must be added via the file browser. No clipboard paste either.
-- **No batch scanning** -- Cards are scanned one at a time.
+- **Batch scanning is new** -- The bulk scan feature was just added and may have rough edges with large batches (50+ cards).
 - **No automated tests** -- The codebase has no unit or integration tests yet.
 - **macOS builds are untested** -- The macOS executables cross-compile from Windows but haven't been tested on actual Mac hardware. They may need `chmod +x CardLister` and Gatekeeper approval.
 - **No auto-update** -- You'll need to download new releases manually.
@@ -53,9 +57,8 @@ This is an MVP -- here's what's rough or missing:
 
 Planned improvements, roughly in priority order:
 
-- [ ] **Comprehensive checklist database** -- Build a standalone tool to scrape TCDB.com and generate a bundled `checklists.db` covering all major sets (Prizm, Donruss, Mosaic, Select, Optic, Chrome, Bowman, etc.)
+- [ ] **Expand checklist database** -- Add pre-2017 sets, niche brands (Leaf, Sage, Upper Deck), and international releases
 - [ ] **Drag-and-drop image support** -- Drop card photos directly onto the scan area
-- [ ] **Batch scanning** -- Scan multiple card images in a queue
 - [ ] **Unit and integration tests** -- Cover ViewModels, services, and the verification pipeline
 - [ ] **macOS .app bundle** -- Proper macOS application bundle with icon and Info.plist so it behaves like a native app
 - [ ] **Linux support** -- Test and publish Linux builds

@@ -13,21 +13,15 @@ This document outlines planned future enhancements, architectural improvements, 
 - Variation verification with checklist database
 - Single-card and bulk scanning workflows
 - Inventory management with filtering and search
-- **Enhanced pricing research** with comprehensive search queries
-  - All card fields included (manufacturer, team, grading)
-  - Cross-grader search for better graded card research
-- **Reprice feature** to send cards back to pricing queue
+- Pricing research via browser integration
 - Whatnot CSV export with image hosting
 - Sales tracking and financial reporting
 - Graded card support (PSA, BGS, CGC, etc.)
 - Checklist learning and management
 - Setup wizard and settings
 
-**🚧 Recently Completed:**
-- Pricing workflow improvements (comprehensive search, reprice feature)
-- NullableDecimalConverter for proper UI handling
-- Cross-grader search functionality
-- Shelved automated 130point pricing (infrastructure kept for future)
+**🚧 In Progress:**
+- Bulk scanning feature (feature/bulk-scan branch)
 
 **📋 This Document:**
 - What we're planning to build next
@@ -38,7 +32,25 @@ This document outlines planned future enhancements, architectural improvements, 
 
 ## High Priority (Next 3-6 Months)
 
-### 1. Three-Project Architecture Refactor
+### 1. Complete Bulk Scanning Feature
+
+**Status:** 🚧 In Progress (feature/bulk-scan)
+
+**Description:** Multi-card batch scanning workflow with front/back pairing, progress tracking, and rate-limit handling.
+
+**What's Left:**
+- Finalize UI polish
+- Enhanced error handling for failed scans
+- Batch save with validation
+- Testing with 50+ card batches
+
+**Success Criteria:**
+- Can scan 50+ cards in one session
+- Front/back pairing works reliably
+- Progress can be paused and resumed
+- Rate limits don't break the workflow
+
+### 2. Three-Project Architecture Refactor
 
 **Priority:** High
 **Effort:** Medium (2-3 weeks)
@@ -82,7 +94,7 @@ CardLister.Infrastructure/  # External integrations
 - Namespace changes require ViewLocator update
 - DI registration moves to App project
 
-### 2. Unit and Integration Tests
+### 3. Unit and Integration Tests
 
 **Priority:** High
 **Effort:** Medium (3-4 weeks)
@@ -121,25 +133,12 @@ CardLister.Infrastructure.Tests/
 
 ### 4. Automated Price Scraping
 
-**Priority:** Low (Shelved - infrastructure preserved)
+**Priority:** High
 **Effort:** High (4-6 weeks)
-**Status:** Attempted with 130point.com scraping, found ineffective
+**Benefits:** Eliminates manual Terapeak/eBay lookups
 
-**What was implemented:**
-- SoldPriceRecord model and database schema
-- ISoldPriceService interface
-- Point130SoldPriceService with web scraping (HtmlAgilityPack)
-- Tiered grading match strategy (exact matches preferred, ±0.5 grade fallback)
-- Rate limiting (15 seconds between requests)
-- Statistical price calculation (median, outlier removal)
-
-**Why shelved:**
-- 130point.com scraping proved not very effective in practice
-- Manual workflow improvements (comprehensive search queries, cross-grader search, reprice feature) provide better value
-- Infrastructure kept in codebase for potential future use with better data source
-
-**Current:** Opens browser, user manually checks prices with enhanced search queries
-**Future:** May revisit with official APIs (eBay, Terapeak) or better data sources
+**Current:** Opens browser, user manually checks prices
+**Target:** Automated price lookup with multiple sources
 
 **Approach Options:**
 
@@ -518,11 +517,9 @@ Recommendation: [Build now / Later / Never]
 
 CardLister has achieved MVP status with a solid foundation. The roadmap focuses on:
 
-1. **Short-term:** Refactor architecture, add tests, complete bulk scanning improvements
-2. **Medium-term:** Cloud sync, more export formats, performance optimizations
+1. **Short-term:** Complete bulk scanning, refactor architecture, add tests
+2. **Medium-term:** Automated pricing, cloud sync, more export formats
 3. **Long-term:** Mobile apps, advanced features, scale
-
-**Note:** Automated pricing via web scraping was attempted and shelved. Infrastructure remains in codebase for potential future use with official APIs.
 
 This is a living document. Priorities will shift based on user feedback, technical discoveries, and market changes. Revisit quarterly.
 

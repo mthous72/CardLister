@@ -1,11 +1,16 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CardLister.ViewModels"
+             xmlns:converters="using:CardLister.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="CardLister.Views.PricingView"
              x:DataType="vm:PricingViewModel">
+
+    <UserControl.Resources>
+        <converters:NullableDecimalConverter x:Key="NullableDecimalConverter"/>
+    </UserControl.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto" Margin="24">
 
@@ -150,14 +155,14 @@
                         CornerRadius="8" Padding="20">
                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="16">
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Market Value ($)" FontWeight="SemiBold"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MarketValue, TargetNullValue=''}" Watermark="e.g., 15.00"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MarketValue, Converter={StaticResource NullableDecimalConverter}}" Watermark="e.g., 15.00"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Suggested Price" VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SuggestedPrice, StringFormat='\{0:C2\}', TargetNullValue=''}"
                                    VerticalAlignment="Center" FontWeight="SemiBold"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Listing Price ($)" FontWeight="SemiBold"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ListingPrice, TargetNullValue=''}" Watermark="Your price"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ListingPrice, Converter={StaticResource NullableDecimalConverter}}" Watermark="Your price"/>
 
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Net After Fees" VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NetAfterFees, StringFormat='\{0:C2\}', TargetNullValue=''}"
@@ -165,7 +170,7 @@
 
                         <!-- Cost Basis -->
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Cost Basis ($)"/>
-                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding CostBasis, TargetNullValue=''}" Watermark="What you paid"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding CostBasis, Converter={StaticResource NullableDecimalConverter}}" Watermark="What you paid"/>
 
                         <TextBlock Grid.Row="5" Grid.Column="0" Text="Cost Notes"/>
                         <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CostNotes, TargetNullValue=''}" Watermark="Receipt #, etc."/>

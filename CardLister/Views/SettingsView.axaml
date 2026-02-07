@@ -69,6 +69,16 @@
 
                     <CheckBox IsChecked="{Binding EnableChecklistLearning}"
                               Content="Auto-learn checklists from saved cards"/>
+
+                    <!-- Concurrent Scans -->
+                    <TextBlock Text="Max Concurrent Bulk Scans" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                    <NumericUpDown Value="{Binding MaxConcurrentScans}"
+                                   Minimum="1" Maximum="8" Increment="1"
+                                   HorizontalAlignment="Left" Width="100"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Opacity="0.6" Margin="0,-6,0,0">
+                        For free models (with :free suffix), use 1 to avoid rate limits.
+                        For paid models with credits, use 3-4 for optimal speed.
+                    </TextBlock>
                 </StackPanel>
             </Border>
 

@@ -41,6 +41,7 @@ namespace CardLister.ViewModels
         [ObservableProperty] private bool _autoApplyHighConfidenceSuggestions = true;
         [ObservableProperty] private bool _runConfirmationPass = true;
         [ObservableProperty] private bool _enableChecklistLearning = true;
+        [ObservableProperty] private int _maxConcurrentScans = 1;
 
         // Financial
         [ObservableProperty] private decimal _whatnotFeePercent = 11.0m;
@@ -98,6 +99,7 @@ namespace CardLister.ViewModels
             AutoApplyHighConfidenceSuggestions = s.AutoApplyHighConfidenceSuggestions;
             RunConfirmationPass = s.RunConfirmationPass;
             EnableChecklistLearning = s.EnableChecklistLearning;
+            MaxConcurrentScans = s.MaxConcurrentScans;
             WhatnotFeePercent = s.WhatnotFeePercent;
             EbayFeePercent = s.EbayFeePercent;
             DefaultShippingCostPwe = s.DefaultShippingCostPwe;
@@ -173,6 +175,7 @@ namespace CardLister.ViewModels
                 AutoApplyHighConfidenceSuggestions = AutoApplyHighConfidenceSuggestions,
                 RunConfirmationPass = RunConfirmationPass,
                 EnableChecklistLearning = EnableChecklistLearning,
+                MaxConcurrentScans = MaxConcurrentScans,
                 WhatnotFeePercent = WhatnotFeePercent,
                 EbayFeePercent = EbayFeePercent,
                 DefaultShippingCostPwe = DefaultShippingCostPwe,

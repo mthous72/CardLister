@@ -73,17 +73,22 @@ public class Point130SoldPriceService : ISoldPriceService
                 .ToList();
         }
 
-        // Match graded vs raw
+        // Match graded vs raw (CRITICAL: prevents mixing PSA 10 with PSA 9 or raw)
         if (card.IsGraded)
         {
             query = query.Where(r => r.IsGraded &&
                                      r.GradeCompany == card.GradeCompany &&
                                      r.GradeValue == card.GradeValue)
                 .ToList();
+
+            _logger.LogDebug(
+                "Filtered to graded cards only: {Company} {Value} ({Count} matches)",
+                card.GradeCompany, card.GradeValue, query.Count);
         }
         else
         {
             query = query.Where(r => !r.IsGraded).ToList();
+            _logger.LogDebug("Filtered to raw (ungraded) cards only ({Count} matches)", query.Count);
         }
 
         // Return most recent first
@@ -297,6 +302,7 @@ public class Point130SoldPriceService : ISoldPriceService
 
     /// <summary>
     /// Build search query string from card details.
+    /// IMPORTANT: Includes grading info (PSA 10, BGS 9.5, etc.) to get accurate pricing.
     /// </summary>
     private string BuildSearchQuery(Card card)
     {
@@ -318,7 +324,7 @@ public class Point130SoldPriceService : ISoldPriceService
         if (!string.IsNullOrEmpty(card.ParallelName))
             parts.Add(card.ParallelName);
 
-        // Add grade info if graded
+        // Add grade info if graded (CRITICAL for accurate pricing)
         if (card.IsGraded && !string.IsNullOrEmpty(card.GradeCompany))
         {
             parts.Add(card.GradeCompany);
@@ -326,7 +332,9 @@ public class Point130SoldPriceService : ISoldPriceService
                 parts.Add(card.GradeValue);
         }
 
-        return string.Join(" ", parts);
+        var query = string.Join(" ", parts);
+        _logger.LogDebug("Built search query: '{Query}' (IsGraded: {IsGraded})", query, card.IsGraded);
+        return query;
     }
 
     /// <summary>

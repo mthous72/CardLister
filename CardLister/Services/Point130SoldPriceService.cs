@@ -345,6 +345,9 @@ public class Point130SoldPriceService : ISoldPriceService
     /// </summary>
     public async Task<bool> HasRecentDataAsync(Card card, int daysOld = 30)
     {
+        if (string.IsNullOrEmpty(card.PlayerName))
+            return false;
+
         var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
 
         var hasRecent = await _dbContext.SoldPriceRecords
@@ -356,7 +359,7 @@ public class Point130SoldPriceService : ISoldPriceService
 
         _logger.LogDebug(
             "HasRecentDataAsync for {Player}: {HasData} (within {Days} days)",
-            card.PlayerName, hasRecent, daysOld);
+            card.PlayerName ?? "(null)", hasRecent, daysOld);
 
         return hasRecent;
     }

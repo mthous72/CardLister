@@ -27,7 +27,8 @@ These features are implemented and functional today:
   - **Basketball (21 sets):** Panini Prizm, Donruss Optic, Mosaic (2018-2024)
   - **Baseball (28 sets):** Topps Chrome, Bowman, Bowman Chrome, Topps (2018-2024)
 - **Inventory Grid** -- Browse, search, filter, and sort your card collection in a DataGrid. Track card status (Draft, Priced, Listed, Sold) and price staleness indicators.
-- **Pricing Workflow** -- Step through unpriced cards one at a time with Terapeak and eBay sold listing links that open in your browser. Enter market value, get a suggested list price, and save with cost basis tracking.
+- **Pricing Workflow** -- Step through unpriced cards one at a time with intelligent Terapeak and eBay sold listing links that open in your browser. Search URLs include **all card details** (year, manufacturer, brand, player, card number, parallel, team, and grading info) for more accurate research. For graded cards, searches include "graded [grade]" to find comparable sales across **all grading companies** (PSA, BGS, CGC, SGC). Enter market value, get a suggested list price, and save with cost basis tracking.
+- **Reprice Feature** -- Send any priced card back to the pricing queue from the Inventory view to update market values or correct pricing mistakes.
 - **Stale Price Repricing** -- Cards whose price is older than a configurable threshold (default 30 days) are flagged. Walk through them to keep or update prices.
 - **Mark as Sold** -- Record sale price, platform (Whatnot/eBay), fees, and shipping cost. Net profit is auto-calculated.
 - **Delete Cards** -- Remove cards from inventory with a confirmation dialog.

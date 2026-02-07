@@ -40,6 +40,8 @@ namespace CardLister.ViewModels
 
         // Delete confirmation dialog
         [ObservableProperty] private bool _showDeleteConfirmDialog;
+        [ObservableProperty] private int _deleteCount;
+        [ObservableProperty] private string _deleteConfirmMessage = string.Empty;
 
         // Mark as Sold dialog
         [ObservableProperty] private bool _showSoldDialog;
@@ -58,7 +60,8 @@ namespace CardLister.ViewModels
         [ObservableProperty] private string? _exportError;
         [ObservableProperty] private int _selectedCount;
 
-        public Card? SelectedCard => SelectedItem?.Card;
+        public Card? SelectedCard => SelectedItem?.Card ?? FilteredCards.FirstOrDefault(c => c.IsSelected)?.Card;
+        public bool HasSelectedItem => SelectedItem != null || FilteredCards.Any(c => c.IsSelected);
 
         public List<string> SportOptions { get; } = new() { "All", "Football", "Baseball", "Basketball" };
         public List<string> StatusOptions { get; } = new() { "All", "Draft", "Priced", "Ready", "Listed", "Sold" };
@@ -86,9 +89,13 @@ namespace CardLister.ViewModels
         partial void OnSelectedItemChanged(SelectableCard? value)
         {
             OnPropertyChanged(nameof(SelectedCard));
+            OnPropertyChanged(nameof(HasSelectedItem));
+            EditSelectedCommand.NotifyCanExecuteChanged();
+            RequestDeleteSelectedCommand.NotifyCanExecuteChanged();
+            OpenSoldDialogCommand.NotifyCanExecuteChanged();
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(HasSelectedItem))]
         private async Task EditSelectedAsync()
         {
             if (SelectedCard == null) return;
@@ -129,11 +136,29 @@ namespace CardLister.ViewModels
             UpdateSummary();
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(HasSelectedItem))]
         private void RequestDeleteSelected()
         {
-            if (SelectedCard == null) return;
+            var cardsToDelete = GetCardsToDelete();
+            if (cardsToDelete.Count == 0) return;
+            DeleteCount = cardsToDelete.Count;
+
+            if (DeleteCount == 1)
+                DeleteConfirmMessage = $"Are you sure you want to delete {SelectedCard?.PlayerName ?? "this card"}? This cannot be undone.";
+            else
+                DeleteConfirmMessage = $"Are you sure you want to delete {DeleteCount} cards? This cannot be undone.";
+
             ShowDeleteConfirmDialog = true;
+        }
+
+        private List<SelectableCard> GetCardsToDelete()
+        {
+            // If row is selected, delete just that one
+            if (SelectedItem != null)
+                return new List<SelectableCard> { SelectedItem };
+
+            // Otherwise delete all checked cards
+            return FilteredCards.Where(c => c.IsSelected).ToList();
         }
 
         [RelayCommand]
@@ -145,14 +170,50 @@ namespace CardLister.ViewModels
         [RelayCommand]
         private async Task ConfirmDeleteAsync()
         {
-            if (SelectedCard == null || SelectedItem == null) return;
+            var itemsToDelete = GetCardsToDelete();
+            if (itemsToDelete.Count == 0) return;
 
-            await _cardRepository.DeleteCardAsync(SelectedCard.Id);
-            _allCards.Remove(SelectedCard);
-            FilteredCards.Remove(SelectedItem);
-            SelectedItem = null;
-            ShowDeleteConfirmDialog = false;
-            UpdateSummary();
+            var deletedCount = 0;
+            var failedCount = 0;
+
+            try
+            {
+                foreach (var item in itemsToDelete.ToList())
+                {
+                    try
+                    {
+                        await _cardRepository.DeleteCardAsync(item.Card.Id);
+
+                        var cardToRemove = _allCards.FirstOrDefault(c => c.Id == item.Card.Id);
+                        if (cardToRemove != null)
+                            _allCards.Remove(cardToRemove);
+
+                        FilteredCards.Remove(item);
+                        deletedCount++;
+                        _logger.LogInformation("Deleted card {CardId}: {PlayerName}", item.Card.Id, item.Card.PlayerName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to delete card {CardId}", item.Card.Id);
+                        failedCount++;
+                    }
+                }
+
+                SelectedItem = null;
+                ShowDeleteConfirmDialog = false;
+                UpdateSummary();
+
+                if (failedCount > 0)
+                    ExportError = $"Deleted {deletedCount} cards, {failedCount} failed";
+                else
+                    ExportMessage = $"Deleted {deletedCount} card(s) successfully";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete cards");
+                ShowDeleteConfirmDialog = false;
+                ExportError = $"Failed to delete cards: {ex.Message}";
+            }
         }
 
         partial void OnSoldSalePriceChanged(decimal? value)
@@ -165,7 +226,7 @@ namespace CardLister.ViewModels
             }
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(HasSelectedItem))]
         private void OpenSoldDialog()
         {
             if (SelectedCard == null) return;
@@ -224,6 +285,11 @@ namespace CardLister.ViewModels
         private void UpdateSelectedCount()
         {
             SelectedCount = FilteredCards.Count(c => c.IsSelected);
+            OnPropertyChanged(nameof(SelectedCard));
+            OnPropertyChanged(nameof(HasSelectedItem));
+            EditSelectedCommand.NotifyCanExecuteChanged();
+            RequestDeleteSelectedCommand.NotifyCanExecuteChanged();
+            OpenSoldDialogCommand.NotifyCanExecuteChanged();
         }
 
         // === Export Commands ===

@@ -16,6 +16,7 @@ namespace CardLister.ViewModels
         private readonly IPricerService _pricerService;
         private readonly IBrowserService _browserService;
         private readonly ISettingsService _settingsService;
+        private readonly ISoldPriceService _soldPriceService;
 
         private List<Card> _unpricedCards = new();
         private int _currentIndex;
@@ -33,16 +34,23 @@ namespace CardLister.ViewModels
         [ObservableProperty] private string? _statusMessage;
         [ObservableProperty] private bool _hasCards;
 
+        // Automated pricing properties
+        [ObservableProperty] private bool _isLookingUpPrice;
+        [ObservableProperty] private PriceLookupResult? _lookupResult;
+        [ObservableProperty] private string _automatedStatusMessage = "";
+
         public PricingViewModel(
             ICardRepository cardRepository,
             IPricerService pricerService,
             IBrowserService browserService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            ISoldPriceService soldPriceService)
         {
             _cardRepository = cardRepository;
             _pricerService = pricerService;
             _browserService = browserService;
             _settingsService = settingsService;
+            _soldPriceService = soldPriceService;
 
             LoadUnpricedAsync();
         }
@@ -106,6 +114,10 @@ namespace CardLister.ViewModels
                 CostSource = CurrentCard.CostSource;
                 CostNotes = CurrentCard.CostNotes;
                 StatusMessage = null;
+
+                // Clear automated pricing state
+                LookupResult = null;
+                AutomatedStatusMessage = "";
             }
         }
 
@@ -124,13 +136,87 @@ namespace CardLister.ViewModels
         }
 
         [RelayCommand]
+        private async Task GetMarketPriceAsync()
+        {
+            if (CurrentCard == null) return;
+
+            IsLookingUpPrice = true;
+            LookupResult = null;
+            AutomatedStatusMessage = "Checking local database...";
+
+            try
+            {
+                // First, check if we have recent local data (within 30 days)
+                var hasRecentData = await _soldPriceService.HasRecentDataAsync(CurrentCard, daysOld: 30);
+
+                if (!hasRecentData)
+                {
+                    AutomatedStatusMessage = "Scraping sold listings from 130point.com (this may take 15+ seconds)...";
+
+                    var scrapeResult = await _soldPriceService.ScrapeSoldPricesAsync(CurrentCard, maxResults: 20);
+
+                    if (!scrapeResult.Success)
+                    {
+                        AutomatedStatusMessage = $"Scraping failed: {scrapeResult.ErrorMessage}. Use manual Terapeak lookup instead.";
+                        return;
+                    }
+
+                    AutomatedStatusMessage = $"Found {scrapeResult.RecordsFound} sold listing(s). Calculating market value...";
+                }
+                else
+                {
+                    AutomatedStatusMessage = "Found recent data in local database. Calculating market value...";
+                }
+
+                // Find matching records in local database
+                var matches = await _soldPriceService.FindMatchingRecordsAsync(CurrentCard);
+
+                // Calculate market value
+                LookupResult = _soldPriceService.CalculateMarketValue(matches, CurrentCard);
+
+                if (LookupResult.Success && LookupResult.MedianPrice.HasValue)
+                {
+                    // Update market value with the median price
+                    MarketValue = LookupResult.MedianPrice;
+
+                    var confidenceLabel = LookupResult.Confidence switch
+                    {
+                        PriceConfidence.High => "High",
+                        PriceConfidence.Medium => "Medium",
+                        PriceConfidence.Low => "Low",
+                        _ => "Unknown"
+                    };
+
+                    AutomatedStatusMessage = $"Success! Found {LookupResult.SampleSize} comparable sale(s) - {confidenceLabel} confidence";
+                }
+                else
+                {
+                    AutomatedStatusMessage = "No comparable sales found. Use manual Terapeak lookup to research pricing.";
+                }
+            }
+            catch (Exception ex)
+            {
+                AutomatedStatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsLookingUpPrice = false;
+            }
+        }
+
+        [RelayCommand]
         private async Task SaveAndNextAsync()
         {
             if (CurrentCard == null || !ListingPrice.HasValue) return;
 
+            // Determine price source based on whether automated lookup was used
+            var priceSource = LookupResult?.Success == true
+                ? $"130point (auto, {LookupResult.SampleSize} sales, {LookupResult.Confidence})"
+                : "Terapeak (manual)";
+
             CurrentCard.EstimatedValue = MarketValue;
             CurrentCard.ListingPrice = ListingPrice;
-            CurrentCard.PriceSource = "Terapeak";
+            CurrentCard.PriceSource = priceSource;
             CurrentCard.PriceDate = DateTime.UtcNow;
             CurrentCard.PriceCheckCount++;
             CurrentCard.Status = CardStatus.Priced;
@@ -145,7 +231,7 @@ namespace CardLister.ViewModels
                 CardId = CurrentCard.Id,
                 EstimatedValue = MarketValue,
                 ListingPrice = ListingPrice,
-                PriceSource = "Terapeak"
+                PriceSource = priceSource
             });
 
             _unpricedCards.RemoveAt(_currentIndex);

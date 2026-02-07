@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CardLister.Models;
+using CardLister.Models.Enums;
 using CardLister.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace CardLister.ViewModels
 {
@@ -16,6 +18,8 @@ namespace CardLister.ViewModels
         private readonly ICardRepository _cardRepository;
         private readonly IFileDialogService _fileDialogService;
         private readonly ISettingsService _settingsService;
+        private readonly IVariationVerifier _variationVerifier;
+        private readonly ILogger<BulkScanViewModel> _logger;
 
         private CancellationTokenSource? _scanCts;
 
@@ -27,6 +31,7 @@ namespace CardLister.ViewModels
         [ObservableProperty] private string? _errorMessage;
         [ObservableProperty] private string? _successMessage;
         [ObservableProperty] private BulkScanItem? _selectedItem;
+        [ObservableProperty] private string? _statusMessage;
 
         public ObservableCollection<BulkScanItem> Items { get; } = new();
 
@@ -41,12 +46,16 @@ namespace CardLister.ViewModels
             IScannerService scannerService,
             ICardRepository cardRepository,
             IFileDialogService fileDialogService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            IVariationVerifier variationVerifier,
+            ILogger<BulkScanViewModel> logger)
         {
             _scannerService = scannerService;
             _cardRepository = cardRepository;
             _fileDialogService = fileDialogService;
             _settingsService = settingsService;
+            _variationVerifier = variationVerifier;
+            _logger = logger;
         }
 
         [RelayCommand]
@@ -117,6 +126,8 @@ namespace CardLister.ViewModels
                     break;
 
                 item.Status = BulkScanStatus.Scanning;
+                StatusMessage = $"Scanning card {item.Index} of {ScanTotal}...";
+                _logger.LogInformation("Scanning card {Index}: {Path}", item.Index, item.FrontImagePath);
 
                 try
                 {
@@ -128,22 +139,74 @@ namespace CardLister.ViewModels
                         scanResult.Card.ImagePathBack = item.BackImagePath;
 
                     item.CardDetail = CardDetailViewModel.FromCard(scanResult.Card);
-                    item.DisplayName = !string.IsNullOrEmpty(scanResult.Card.PlayerName)
-                        ? scanResult.Card.PlayerName
+
+                    // Run verification pipeline if enabled (same as regular Scan view)
+                    if (settings.EnableVariationVerification && item.CardDetail != null)
+                    {
+                        try
+                        {
+                            var verification = await _variationVerifier.VerifyCardAsync(scanResult, item.FrontImagePath);
+
+                            // Run confirmation pass if needed and enabled
+                            if (settings.RunConfirmationPass && _variationVerifier.NeedsConfirmationPass(verification))
+                            {
+                                verification = await _variationVerifier.RunConfirmationPassAsync(scanResult, verification, item.FrontImagePath);
+                            }
+
+                            // Auto-apply high-confidence suggestions if enabled
+                            if (settings.AutoApplyHighConfidenceSuggestions)
+                            {
+                                if (verification.SuggestedPlayerName != null &&
+                                    verification.PlayerVerified == false &&
+                                    verification.FieldConfidences.Any(f =>
+                                        f.FieldName == "player_name" &&
+                                        f.Confidence == VerificationConfidence.Conflict))
+                                {
+                                    item.CardDetail.PlayerName = verification.SuggestedPlayerName;
+                                }
+
+                                if (verification.SuggestedVariation != null &&
+                                    verification.OverallConfidence != VerificationConfidence.Conflict)
+                                {
+                                    item.CardDetail.ParallelName = verification.SuggestedVariation;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Verification failed for card {Index}, using unverified scan", item.Index);
+                        }
+                    }
+
+                    item.DisplayName = !string.IsNullOrEmpty(item.CardDetail.PlayerName)
+                        ? item.CardDetail.PlayerName
                         : $"Card {item.Index}";
                     item.Status = BulkScanStatus.Scanned;
+                    _logger.LogInformation("Successfully scanned card {Index}: {PlayerName}", item.Index, item.DisplayName);
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to scan card {Index}: {Path}", item.Index, item.FrontImagePath);
                     item.Status = BulkScanStatus.Error;
                     item.ErrorMessage = ex.Message;
                 }
 
                 ScanProgress++;
+
+                // Add delay between requests ONLY for free models to avoid rate limiting
+                // Paid models (with credits) don't have these strict limits
+                var isFreeModel = settings.DefaultModel.Contains(":free");
+                if (isFreeModel && ScanProgress < ScanTotal && !_scanCts.Token.IsCancellationRequested)
+                {
+                    StatusMessage = "Waiting 4 seconds to avoid free tier rate limits...";
+                    _logger.LogInformation("Waiting 4 seconds before next scan to avoid rate limits on free model...");
+                    await Task.Delay(4000, _scanCts.Token);
+                }
             }
 
             IsScanning = false;
             _scanCts = null;
+            StatusMessage = null;
 
             var scanned = Items.Count(i => i.Status == BulkScanStatus.Scanned);
             var errors = Items.Count(i => i.Status == BulkScanStatus.Error);

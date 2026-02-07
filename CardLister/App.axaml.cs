@@ -115,8 +115,9 @@ namespace CardLister
                     db.Database.EnsureCreated();
                     Log.Debug("Running schema updates");
                     SchemaUpdater.EnsureVerificationTablesAsync(db).GetAwaiter().GetResult();
-                    Log.Debug("Running database seeder");
-                    DatabaseSeeder.SeedIfEmptyAsync(db).GetAwaiter().GetResult();
+                    // Disabled sample card seeding - users don't want auto-generated cards
+                    // Log.Debug("Running database seeder");
+                    // DatabaseSeeder.SeedIfEmptyAsync(db).GetAwaiter().GetResult();
                     Log.Debug("Running checklist seeder");
                     ChecklistSeeder.SeedIfEmptyAsync(db).GetAwaiter().GetResult();
                     Log.Information("Database initialization complete");

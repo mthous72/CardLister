@@ -45,6 +45,8 @@
                         <Run Text=" of "/>
                         <Run Text="{Binding ScanTotal}"/>
                     </TextBlock>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="11" Opacity="0.6"
+                               IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                 </StackPanel>
 
                 <!-- Card List -->
@@ -62,6 +64,9 @@
                                     <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13"
                                                TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Text="{Binding Status}" FontSize="11" Opacity="0.6"/>
+                                    <TextBlock Text="{Binding ErrorMessage}" FontSize="11" Foreground="Red"
+                                               TextWrapping="Wrap"
+                                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                 </StackPanel>
                                 <!-- Index -->
                                 <TextBlock Grid.Column="2" Text="{Binding Index}" FontSize="11"

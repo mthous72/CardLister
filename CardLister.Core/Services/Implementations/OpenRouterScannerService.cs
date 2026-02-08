@@ -130,8 +130,21 @@ Return ONLY the JSON, no other text or markdown.";
             var content = await SendVisionRequestAsync(dataUrls, prompt, model);
             content = StripCodeBlocks(content);
 
-            var scannedData = JsonSerializer.Deserialize<ScannedCardData>(content)
-                ?? throw new InvalidOperationException("Failed to parse AI response as card data.");
+            ScannedCardData? scannedData;
+            try
+            {
+                scannedData = JsonSerializer.Deserialize<ScannedCardData>(content);
+                if (scannedData == null)
+                    throw new InvalidOperationException("Failed to parse AI response as card data.");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON parsing failed. Raw response (first 500 chars): {Response}",
+                    content.Length > 500 ? content.Substring(0, 500) + "..." : content);
+                throw new InvalidOperationException(
+                    $"Scan Failed: The AI model returned invalid JSON. This may be due to the response being cut off. " +
+                    $"Error: {ex.Message}. Please try scanning again or try a different AI model.", ex);
+            }
 
             var card = MapToCard(scannedData, imagePath);
             if (!string.IsNullOrEmpty(backImagePath))
@@ -236,7 +249,7 @@ Return ONLY the JSON, no other text or markdown.";
             var request = new OpenRouterRequest
             {
                 Model = model,
-                MaxTokens = 2048,
+                MaxTokens = 4096, // Increased from 2048 to ensure complete JSON response
                 Messages = new List<OpenRouterMessage>
                 {
                     new() { Role = "user", Content = contentParts }
@@ -258,8 +271,22 @@ Return ONLY the JSON, no other text or markdown.";
                 throw new HttpRequestException($"OpenRouter API error ({response.StatusCode}): {responseBody}");
 
             var apiResponse = JsonSerializer.Deserialize<OpenRouterResponse>(responseBody);
-            return apiResponse?.Choices[0]?.Message?.Content
-                ?? throw new InvalidOperationException("No response content from AI model.");
+            if (apiResponse?.Choices == null || apiResponse.Choices.Count == 0)
+                throw new InvalidOperationException("No response content from AI model.");
+
+            var choice = apiResponse.Choices[0];
+            var content = choice?.Message?.Content;
+
+            if (string.IsNullOrEmpty(content))
+                throw new InvalidOperationException("No response content from AI model.");
+
+            // Check if response was cut off due to token limit
+            if (choice?.FinishReason == "length")
+            {
+                _logger.LogWarning("AI response was truncated due to token limit for model {Model}", model);
+            }
+
+            return content;
         }
 
         private static List<string> GetFallbackChain(string startModel)
@@ -288,10 +315,36 @@ Return ONLY the JSON, no other text or markdown.";
         private static string StripCodeBlocks(string content)
         {
             content = content.Trim();
+
+            // Handle markdown code blocks
             if (content.Contains("```json"))
-                content = content.Split("```json")[1].Split("```")[0];
+            {
+                var parts = content.Split(new[] { "```json" }, StringSplitOptions.None);
+                if (parts.Length > 1)
+                {
+                    var jsonPart = parts[1].Split(new[] { "```" }, StringSplitOptions.None)[0];
+                    content = jsonPart.Trim();
+                }
+            }
             else if (content.Contains("```"))
-                content = content.Split("```")[1].Split("```")[0];
+            {
+                var parts = content.Split(new[] { "```" }, StringSplitOptions.None);
+                if (parts.Length > 1)
+                {
+                    var jsonPart = parts[1].Split(new[] { "```" }, StringSplitOptions.None)[0];
+                    content = jsonPart.Trim();
+                }
+            }
+
+            // Find JSON boundaries if there's extra text
+            var jsonStart = content.IndexOf('{');
+            var jsonEnd = content.LastIndexOf('}');
+
+            if (jsonStart >= 0 && jsonEnd > jsonStart)
+            {
+                content = content.Substring(jsonStart, jsonEnd - jsonStart + 1);
+            }
+
             return content.Trim();
         }
 

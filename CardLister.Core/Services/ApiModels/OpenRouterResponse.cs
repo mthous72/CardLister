@@ -13,6 +13,9 @@ namespace CardLister.Core.Services.ApiModels
     {
         [JsonPropertyName("message")]
         public OpenRouterResponseMessage Message { get; set; } = new();
+
+        [JsonPropertyName("finish_reason")]
+        public string? FinishReason { get; set; }
     }
 
     public class OpenRouterResponseMessage

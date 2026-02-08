@@ -55,7 +55,12 @@
       "Bash(chmod:*)",
       "Bash(/tmp/test-web.sh)",
       "Bash(entered, the app should have a big label that AI checking will not)",
-      "Bash(work unless they are applied.\"\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(work unless they are applied.\"\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "WebFetch(domain:openrouter.ai)",
+      "Bash(git restore:*)",
+      "Bash(build-web-package.bat)",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\Houston~1\\\\source\\\\repos\\\\CardLister && build-web-package.bat\")",
+      "Bash(\"C:\\\\Users\\\\Houston Smlr Laptop\\\\source\\\\repos\\\\CardLister\\\\build-web-package.bat\")"
     ]
   }
 }

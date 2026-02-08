@@ -297,6 +297,25 @@
                            Foreground="Green" FontSize="14"/>
             </StackPanel>
 
+            <!-- Legal Disclaimer -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20" Background="{DynamicResource SystemChromeLowColor}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="⚠️ Important Legal Notice" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.85">
+                        <Run FontWeight="Bold">For Educational Use Only.</Run>
+                        CardLister is provided "AS IS" without warranties of any kind. No warranties are implied regarding the accuracy of AI card identification, pricing data, financial calculations, or any other information.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.85">
+                        <Run FontWeight="Bold">Use at Your Own Risk.</Run>
+                        Always verify all card identifications, prices, and financial data independently. AI-generated content may contain errors. Not intended for professional accounting, tax, or financial advice.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Opacity="0.7" Margin="0,4,0,0">
+                        By using this software, you accept all responsibility for verifying data accuracy and compliance with applicable laws. See full disclaimer in README.md.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
     </ScrollViewer>
 </UserControl>

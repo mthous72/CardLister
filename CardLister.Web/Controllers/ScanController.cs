@@ -73,7 +73,7 @@ namespace CardLister.Web.Controllers
 
                 // Get settings for model selection
                 var settings = _settingsService.Load();
-                var model = selectedModel ?? settings.DefaultModel ?? "openai/gpt-4o-mini";
+                var model = selectedModel ?? settings.DefaultModel ?? "nvidia/nemotron-nano-12b-v2-vl:free";
 
                 // Scan the card using AI
                 _logger.LogInformation("Scanning card with model {Model}", model);

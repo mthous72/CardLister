@@ -69,16 +69,34 @@
                             <label for="selectedModel" class="form-label">
                                 <strong>AI Model</strong>
                             </label>
-                            <select class="form-select" id="selectedModel" name="selectedModel">
-                                @foreach (var availableModel in Model.AvailableModels)
-                                {
-                                    <option value="@availableModel" selected="@(availableModel == Model.SelectedModel)">
-                                        @availableModel @(availableModel.Contains("free") ? "(Free)" : "")
-                                    </option>
-                                }
+                            <select class="form-select form-select-lg" id="selectedModel" name="selectedModel">
+                                <optgroup label="Free Models (Recommended)">
+                                    @{
+                                        var freeModels = Model.AvailableModels.Where(m => m.Contains(":free")).ToList();
+                                        foreach (var modelName in freeModels)
+                                        {
+                                            <option value="@modelName" selected="@(modelName == Model.SelectedModel)">
+                                                @modelName.Replace(":free", "")
+                                            </option>
+                                        }
+                                    }
+                                </optgroup>
+                                <optgroup label="Paid Models">
+                                    @{
+                                        var paidModels = Model.AvailableModels.Where(m => !m.Contains(":free")).ToList();
+                                        foreach (var modelName in paidModels)
+                                        {
+                                            var priceLabel = modelName == "openai/gpt-4o-mini" ? "($0.15/$0.60 per 1M)" :
+                                                           modelName == "anthropic/claude-3.5-sonnet" ? "($5/$25 per 1M)" : "(Paid)";
+                                            <option value="@modelName" selected="@(modelName == Model.SelectedModel)">
+                                                @modelName @priceLabel
+                                            </option>
+                                        }
+                                    }
+                                </optgroup>
                             </select>
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i> Free models may have rate limits. Paid models are faster and more accurate.
+                            <small class="text-muted d-block mt-2" style="line-height: 1.5;">
+                                <i class="bi bi-info-circle"></i> Free models are recommended and may take 30-60 seconds. Paid models are faster but require credits.
                             </small>
                         </div>
 

@@ -74,14 +74,14 @@
 
     @if (missingOpenRouter || missingImgBB)
     {
-        <div class="alert alert-warning alert-dismissible fade show m-3" role="alert">
+        <div class="alert alert-warning alert-dismissible fade show m-3" role="alert" style="overflow-wrap: break-word; word-wrap: break-word;">
             <h5 class="alert-heading">
                 <i class="bi bi-exclamation-triangle-fill"></i> API Keys Not Configured
             </h5>
-            <p class="mb-2">
+            <p class="mb-2" style="line-height: 1.6;">
                 <strong>Some features will not work until API keys are configured.</strong>
             </p>
-            <ul class="mb-2">
+            <ul class="mb-2" style="line-height: 1.6;">
                 @if (missingOpenRouter)
                 {
                     <li><strong>OpenRouter API Key:</strong> Required for AI card scanning. Scanning will not work without this.</li>
@@ -92,7 +92,7 @@
                 }
             </ul>
             <hr>
-            <p class="mb-0">
+            <p class="mb-0" style="line-height: 1.6;">
                 <i class="bi bi-gear-fill"></i> <strong>To configure API keys:</strong> Open the <strong>CardLister Desktop application</strong> and go to Settings.
                 The Web app reads from the same settings file but cannot edit it.
             </p>
@@ -100,24 +100,22 @@
         </div>
     }
 
-    <div class="container-fluid" style="min-height: calc(100vh - 400px);">
-        <main role="main" class="pb-5 mb-5">
+    <div class="container-fluid" style="min-height: calc(100vh - 450px);">
+        <main role="main" class="pb-5 mb-5" style="overflow-x: auto;">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-auto py-3" style="background-color: #f8f9fa;">
+    <footer class="border-top footer text-muted mt-auto py-4" style="background-color: #f8f9fa; position: relative; clear: both;">
         <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <p class="mb-1">&copy; 2026 - CardLister - Sports Card Inventory Management</p>
-                    <p class="small mb-0">
-                        <strong>For educational use only.</strong> No warranties implied. Verify all card identifications, prices, and financial data independently.
-                        AI-generated content may contain errors. Use at your own risk.
-                        Not intended for professional accounting, tax, or financial advice.
+            <div class="row g-3">
+                <div class="col-12 col-lg-9">
+                    <p class="mb-2">&copy; 2026 - CardLister - Sports Card Inventory Management</p>
+                    <p class="small mb-0" style="line-height: 1.6;">
+                        <strong>For educational use only.</strong> No warranties implied. Verify all card identifications, prices, and financial data independently. AI-generated content may contain errors. Use at your own risk. Not intended for professional accounting, tax, or financial advice.
                     </p>
                 </div>
-                <div class="col-md-4 text-md-end">
+                <div class="col-12 col-lg-3 text-lg-end">
                     <p class="small mb-0 text-muted">
                         <a href="https://github.com/mthous72/CardLister" target="_blank" class="text-decoration-none">
                             <i class="bi bi-github"></i> View on GitHub

@@ -1,0 +1,342 @@
+@model CardLister.Web.Models.CardDetailsViewModel
+@{
+    ViewData["Title"] = "Edit Card";
+}
+
+<div class="container mt-4">
+    <h1 class="display-5 mb-4">Edit Card</h1>
+
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.CreatedAt)
+        @Html.HiddenFor(m => m.ImagePathFront)
+        @Html.HiddenFor(m => m.ImagePathBack)
+        @Html.HiddenFor(m => m.ImageUrl1)
+        @Html.HiddenFor(m => m.ImageUrl2)
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <!-- Basic Info Section -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Basic Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="PlayerName" class="form-label"></label>
+                            <input asp-for="PlayerName" class="form-control" required />
+                            <span asp-validation-for="PlayerName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Sport" class="form-label"></label>
+                            <select asp-for="Sport" class="form-select" asp-items="Html.GetEnumSelectList<CardLister.Core.Models.Enums.Sport>()">
+                            </select>
+                            <span asp-validation-for="Sport" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Brand" class="form-label"></label>
+                            <input asp-for="Brand" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Manufacturer" class="form-label"></label>
+                            <input asp-for="Manufacturer" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Year" class="form-label"></label>
+                            <input asp-for="Year" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="CardNumber" class="form-label"></label>
+                            <input asp-for="CardNumber" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Team" class="form-label"></label>
+                            <input asp-for="Team" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="SetName" class="form-label"></label>
+                            <input asp-for="SetName" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="VariationType" class="form-label"></label>
+                            <input asp-for="VariationType" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="ParallelName" class="form-label"></label>
+                            <input asp-for="ParallelName" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="SerialNumbered" class="form-label"></label>
+                            <input asp-for="SerialNumbered" class="form-control" placeholder="e.g., 25/99" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Features -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Card Features</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsRookie" class="form-check-input" />
+                            <label asp-for="IsRookie" class="form-check-label"></label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsAuto" class="form-check-input" />
+                            <label asp-for="IsAuto" class="form-check-label"></label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsRelic" class="form-check-input" />
+                            <label asp-for="IsRelic" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsShortPrint" class="form-check-input" />
+                            <label asp-for="IsShortPrint" class="form-check-label"></label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsSSP" class="form-check-input" />
+                            <label asp-for="IsSSP" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grading Info -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Grading Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="Condition" class="form-label"></label>
+                            <input asp-for="Condition" class="form-control" placeholder="e.g., NM-MT" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input asp-for="IsGraded" class="form-check-input" />
+                            <label asp-for="IsGraded" class="form-check-label"></label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="GradeCompany" class="form-label"></label>
+                            <input asp-for="GradeCompany" class="form-control" placeholder="e.g., PSA, BGS" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="GradeValue" class="form-label"></label>
+                            <input asp-for="GradeValue" class="form-control" placeholder="e.g., 10, 9.5" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="CertNumber" class="form-label"></label>
+                            <input asp-for="CertNumber" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="AutoGrade" class="form-label"></label>
+                            <input asp-for="AutoGrade" class="form-control" placeholder="e.g., 10" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost & Pricing -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Cost & Pricing</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="CostBasis" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="CostBasis" class="form-control" type="number" step="0.01" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="EstimatedValue" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="EstimatedValue" class="form-control" type="number" step="0.01" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="ListingPrice" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="ListingPrice" class="form-control" type="number" step="0.01" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="CostSource" class="form-label"></label>
+                            <input asp-for="CostSource" class="form-control" placeholder="e.g., eBay, Local shop" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="CostDate" class="form-label"></label>
+                            <input asp-for="CostDate" class="form-control" type="date" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CostNotes" class="form-label"></label>
+                    <textarea asp-for="CostNotes" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Quantity" class="form-label"></label>
+                            <input asp-for="Quantity" class="form-control" type="number" min="1" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listing Details -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Listing Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="ListingType" class="form-label"></label>
+                            <input asp-for="ListingType" class="form-control" placeholder="e.g., Auction, Buy Now" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="ShippingProfile" class="form-label"></label>
+                            <input asp-for="ShippingProfile" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="WhatnotCategory" class="form-label"></label>
+                            <input asp-for="WhatnotCategory" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="WhatnotSubcategory" class="form-label"></label>
+                            <input asp-for="WhatnotSubcategory" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="Offerable" class="form-check-input" />
+                    <label asp-for="Offerable" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Notes</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label asp-for="Notes" class="form-label"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between mb-4">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

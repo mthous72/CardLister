@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using CardLister.Models;
-using CardLister.Services;
+using CardLister.Core.Models;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class SetupWizardViewModel : ViewModelBase
     {

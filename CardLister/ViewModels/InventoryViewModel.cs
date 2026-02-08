@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using CardLister.Models;
-using CardLister.Models.Enums;
-using CardLister.Helpers;
-using CardLister.Services;
+using CardLister.Core.Models;
+using CardLister.Core.Models.Enums;
+using CardLister.Core.Helpers;
+using CardLister.Core.Services;
+using CardLister.Desktop.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class InventoryViewModel : ViewModelBase
     {
@@ -21,6 +22,7 @@ namespace CardLister.ViewModels
         private readonly IFileDialogService _fileDialogService;
         private readonly IImageUploadService _imageUploadService;
         private readonly IBrowserService _browserService;
+        private readonly INavigationService _navigationService;
         private readonly ILogger<InventoryViewModel> _logger;
 
         private List<Card> _allCards = new();
@@ -73,11 +75,13 @@ namespace CardLister.ViewModels
             IFileDialogService fileDialogService,
             IImageUploadService imageUploadService,
             IBrowserService browserService,
+            INavigationService navigationService,
             ILogger<InventoryViewModel> logger)
         {
             _cardRepository = cardRepository;
             _settingsService = settingsService;
             _exportService = exportService;
+            _navigationService = navigationService;
             _fileDialogService = fileDialogService;
             _imageUploadService = imageUploadService;
             _browserService = browserService;
@@ -99,15 +103,13 @@ namespace CardLister.ViewModels
         private async Task EditSelectedAsync()
         {
             if (SelectedCard == null) return;
-            if (App.Services.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)
-                await mainVm.NavigateToEditCardAsync(SelectedCard.Id);
+            await _navigationService.NavigateToEditCardAsync(SelectedCard.Id);
         }
 
         [RelayCommand]
-        private void NavigateToReprice()
+        private async Task NavigateToReprice()
         {
-            if (App.Services.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)
-                mainVm.NavigateToCommand.Execute("Reprice");
+            await _navigationService.NavigateToRepriceAsync();
         }
 
         partial void OnSearchTextChanged(string value) => ApplyFilters();

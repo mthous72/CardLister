@@ -5,7 +5,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Serilog;
 
-namespace CardLister.Converters
+namespace CardLister.Desktop.Converters
 {
     public class FilePathToBitmapConverter : IValueConverter
     {

@@ -1,9 +1,9 @@
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
-using CardLister.ViewModels;
+using CardLister.Desktop.ViewModels;
 
-namespace CardLister.Views
+namespace CardLister.Desktop.Views
 {
     public partial class ScanView : UserControl
     {

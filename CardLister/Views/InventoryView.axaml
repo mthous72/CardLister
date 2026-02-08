@@ -1,12 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:CardLister.ViewModels"
-             xmlns:models="using:CardLister.Models"
-             xmlns:conv="using:CardLister.Converters"
+             xmlns:vm="using:CardLister.Desktop.ViewModels"
+             xmlns:models="using:CardLister.Desktop.Models"
+             xmlns:conv="using:CardLister.Desktop.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
-             x:Class="CardLister.Views.InventoryView"
+             x:Class="CardLister.Desktop.Views.InventoryView"
              x:DataType="vm:InventoryViewModel">
 
     <UserControl.Resources>

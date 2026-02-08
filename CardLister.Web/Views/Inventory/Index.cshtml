@@ -1,0 +1,241 @@
+@model CardLister.Web.Models.InventoryListViewModel
+@{
+    ViewData["Title"] = "Inventory";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5"><i class="bi bi-list-ul"></i> Inventory</h1>
+        <div>
+            <span class="badge bg-primary fs-6">@Model.TotalCount Cards</span>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search and Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search"
+                           value="@Model.SearchQuery" placeholder="Player, team, brand...">
+                </div>
+                <div class="col-md-3">
+                    <label for="sport" class="form-label">Sport</label>
+                    <select class="form-select" id="sport" name="sport">
+                        <option value="All" selected="@(Model.SelectedSport == "All")">All Sports</option>
+                        <option value="Football" selected="@(Model.SelectedSport == "Football")">Football</option>
+                        <option value="Baseball" selected="@(Model.SelectedSport == "Baseball")">Baseball</option>
+                        <option value="Basketball" selected="@(Model.SelectedSport == "Basketball")">Basketball</option>
+                        <option value="Hockey" selected="@(Model.SelectedSport == "Hockey")">Hockey</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="All" selected="@(Model.SelectedStatus == "All")">All Status</option>
+                        <option value="Draft" selected="@(Model.SelectedStatus == "Draft")">Draft</option>
+                        <option value="Priced" selected="@(Model.SelectedStatus == "Priced")">Priced</option>
+                        <option value="Ready" selected="@(Model.SelectedStatus == "Ready")">Ready</option>
+                        <option value="Listed" selected="@(Model.SelectedStatus == "Listed")">Listed</option>
+                        <option value="Sold" selected="@(Model.SelectedStatus == "Sold")">Sold</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards Table -->
+    @if (Model.Cards.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Sport</th>
+                                <th>Year</th>
+                                <th>Brand</th>
+                                <th>Card #</th>
+                                <th>Status</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in Model.Cards)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@card.PlayerName</strong>
+                                        @if (card.IsRookie)
+                                        {
+                                            <span class="badge bg-warning text-dark">RC</span>
+                                        }
+                                        @if (card.IsAuto)
+                                        {
+                                            <span class="badge bg-info">Auto</span>
+                                        }
+                                        @if (card.IsGraded)
+                                        {
+                                            <span class="badge bg-success">@card.GradeCompany @card.GradeValue</span>
+                                        }
+                                    </td>
+                                    <td>@card.Sport</td>
+                                    <td>@card.Year</td>
+                                    <td>@card.Brand</td>
+                                    <td>@card.CardNumber</td>
+                                    <td>
+                                        @switch (card.Status.ToString())
+                                        {
+                                            case "Draft":
+                                                <span class="badge bg-secondary">Draft</span>
+                                                break;
+                                            case "Priced":
+                                                <span class="badge bg-primary">Priced</span>
+                                                break;
+                                            case "Ready":
+                                                <span class="badge bg-success">Ready</span>
+                                                break;
+                                            case "Listed":
+                                                <span class="badge bg-info">Listed</span>
+                                                break;
+                                            case "Sold":
+                                                <span class="badge bg-dark">Sold</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (card.ListingPrice.HasValue)
+                                        {
+                                            <text>$@card.ListingPrice.Value.ToString("N2")</text>
+                                        }
+                                        else
+                                        {
+                                            <text>-</text>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@card.Id"
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@card.Id"
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal@(card.Id)"
+                                                    title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Confirmation Modal -->
+                                        <div class="modal fade" id="deleteModal@(card.Id)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Confirm Delete</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Are you sure you want to delete <strong>@card.PlayerName</strong>?
+                                                        This cannot be undone.
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form asp-action="Delete" asp-route-id="@card.Id" method="post" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Inventory pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(Model.CurrentPage - 1)"
+                                   asp-route-search="@Model.SearchQuery"
+                                   asp-route-sport="@Model.SelectedSport"
+                                   asp-route-status="@Model.SelectedStatus">
+                                    Previous
+                                </a>
+                            </li>
+
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-page="@i"
+                                       asp-route-search="@Model.SearchQuery"
+                                       asp-route-sport="@Model.SelectedSport"
+                                       asp-route-status="@Model.SelectedStatus">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(Model.CurrentPage + 1)"
+                                   asp-route-search="@Model.SearchQuery"
+                                   asp-route-sport="@Model.SelectedSport"
+                                   asp-route-status="@Model.SelectedStatus">
+                                    Next
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4><i class="bi bi-info-circle"></i> No cards found</h4>
+            <p>Try adjusting your filters or <a asp-controller="Scan" asp-action="Index">scan a new card</a>.</p>
+        </div>
+    }
+</div>

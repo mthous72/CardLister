@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CardLister.Models;
-using CardLister.Models.Enums;
-using CardLister.Services;
+using CardLister.Core.Models;
+using CardLister.Core.Models.Enums;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class ScanViewModel : ViewModelBase
     {
@@ -244,7 +244,7 @@ namespace CardLister.ViewModels
                 var card = ScannedCard.ToCard();
                 card.ImagePathFront = ImagePath;
                 card.ImagePathBack = ImagePathBack;
-                card.Status = Models.Enums.CardStatus.Draft;
+                card.Status = CardStatus.Draft;
                 await _cardRepository.InsertCardAsync(card);
 
                 // Learn from saved card (fire-and-forget)

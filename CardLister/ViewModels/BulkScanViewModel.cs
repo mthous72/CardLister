@@ -4,14 +4,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CardLister.Models;
-using CardLister.Models.Enums;
-using CardLister.Services;
+using CardLister.Core.Models;
+using CardLister.Core.Models.Enums;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class BulkScanViewModel : ViewModelBase, IDisposable
     {
@@ -307,7 +307,7 @@ namespace CardLister.ViewModels
                     var card = item.CardDetail!.ToCard();
                     card.ImagePathFront = item.FrontImagePath;
                     card.ImagePathBack = item.BackImagePath;
-                    card.Status = Models.Enums.CardStatus.Draft;
+                    card.Status = CardStatus.Draft;
                     await _cardRepository.InsertCardAsync(card);
 
                     item.Status = BulkScanStatus.Saved;

@@ -1,0 +1,195 @@
+@model CardLister.Web.Models.FinancialReportViewModel
+@{
+    ViewData["Title"] = "Financial Report";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5"><i class="bi bi-graph-up"></i> Financial Report</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+
+    <!-- Overall Financial Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-currency-dollar"></i> Overall Financial Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-6">Active Inventory Value:</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <span class="fs-5 text-success fw-bold">$@Model.TotalInventoryValue.ToString("N2")</span>
+                                </dd>
+
+                                <dt class="col-sm-6">Active Inventory Cost:</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <span class="fs-5 text-warning fw-bold">$@Model.TotalInventoryCost.ToString("N2")</span>
+                                </dd>
+
+                                <dt class="col-sm-6">Potential Profit:</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <span class="fs-5 text-info fw-bold">
+                                        $@((Model.TotalInventoryValue - Model.TotalInventoryCost).ToString("N2"))
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-6">Total Revenue (Sold):</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <span class="fs-5 text-primary fw-bold">$@Model.TotalRevenue.ToString("N2")</span>
+                                </dd>
+
+                                <dt class="col-sm-6">Total Profit Realized:</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <span class="fs-5 @(Model.TotalProfit >= 0 ? "text-success" : "text-danger") fw-bold">
+                                        $@Model.TotalProfit.ToString("N2")
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-6">Overall Profit Margin:</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <span class="fs-5 @(Model.OverallProfitMargin >= 0 ? "text-success" : "text-danger") fw-bold">
+                                        @Model.OverallProfitMargin.ToString("F1")%
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Active Cards</h6>
+                    <h2 class="text-primary mb-0">@Model.ActiveCards</h2>
+                    <small class="text-muted">Currently in inventory</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Sold Cards</h6>
+                    <h2 class="text-success mb-0">@Model.SoldCards</h2>
+                    <small class="text-muted">Successfully sold</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Inventory Turnover</h6>
+                    <h2 class="text-info mb-0">@Model.InventoryTurnoverRate.ToString("F1")%</h2>
+                    <small class="text-muted">Sold / Total cards</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profitability by Sport -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-pie-chart"></i> Profitability by Sport</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.ProfitBySport.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sport</th>
+                                <th class="text-end">Total Sales</th>
+                                <th class="text-end">Total Revenue</th>
+                                <th class="text-end">Total Cost</th>
+                                <th class="text-end">Total Profit</th>
+                                <th class="text-end">Avg Profit</th>
+                                <th class="text-end">Profit Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sport in Model.ProfitBySport)
+                            {
+                                <tr>
+                                    <td><strong>@sport.Sport</strong></td>
+                                    <td class="text-end">@sport.TotalSales</td>
+                                    <td class="text-end text-primary fw-bold">$@sport.TotalRevenue.ToString("N2")</td>
+                                    <td class="text-end text-warning">$@sport.TotalCost.ToString("N2")</td>
+                                    <td class="text-end @(sport.TotalProfit >= 0 ? "text-success" : "text-danger") fw-bold">
+                                        $@sport.TotalProfit.ToString("N2")
+                                    </td>
+                                    <td class="text-end @(sport.AverageProfit >= 0 ? "text-success" : "text-danger")">
+                                        $@sport.AverageProfit.ToString("N2")
+                                    </td>
+                                    <td class="text-end @(sport.ProfitMargin >= 0 ? "text-success" : "text-danger")">
+                                        @sport.ProfitMargin.ToString("F1")%
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th>Totals</th>
+                                <th class="text-end">@Model.ProfitBySport.Sum(s => s.TotalSales)</th>
+                                <th class="text-end text-primary">$@Model.TotalRevenue.ToString("N2")</th>
+                                <th class="text-end text-warning">$@Model.ProfitBySport.Sum(s => s.TotalCost).ToString("N2")</th>
+                                <th class="text-end @(Model.TotalProfit >= 0 ? "text-success" : "text-danger")">
+                                    $@Model.TotalProfit.ToString("N2")
+                                </th>
+                                <th></th>
+                                <th class="text-end @(Model.OverallProfitMargin >= 0 ? "text-success" : "text-danger")">
+                                    @Model.OverallProfitMargin.ToString("F1")%
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Visual Breakdown -->
+                <div class="mt-4">
+                    <h6>Profit Distribution by Sport</h6>
+                    @foreach (var sport in Model.ProfitBySport.OrderByDescending(s => s.TotalProfit))
+                    {
+                        var percentage = Model.TotalProfit > 0 ? (sport.TotalProfit / Model.TotalProfit * 100) : 0;
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span><strong>@sport.Sport</strong></span>
+                                <span class="@(sport.TotalProfit >= 0 ? "text-success" : "text-danger") fw-bold">
+                                    $@sport.TotalProfit.ToString("N2") (@percentage.ToString("F1")%)
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar @(sport.TotalProfit >= 0 ? "bg-success" : "bg-danger")"
+                                     role="progressbar"
+                                     style="width: @Math.Abs(percentage)%"
+                                     aria-valuenow="@Math.Abs(percentage)"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> No sold cards to analyze. Start selling cards to see profitability metrics!
+                </div>
+            }
+        </div>
+    </div>
+</div>

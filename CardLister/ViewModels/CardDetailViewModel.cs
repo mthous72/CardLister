@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using CardLister.Models;
-using CardLister.Models.Enums;
+using CardLister.Core.Models;
+using CardLister.Core.Models.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Enums = CardLister.Core.Models.Enums;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class CardDetailViewModel : ObservableObject
     {
@@ -21,8 +22,8 @@ namespace CardLister.ViewModels
 
         public List<string> GradingCompanyOptions { get; set; } = new() { "PSA", "BGS", "CGC", "CCG", "SGC" };
 
-        public static List<Sport?> SportOptions { get; } = new() { null, Models.Enums.Sport.Football, Models.Enums.Sport.Baseball, Models.Enums.Sport.Basketball };
-        public static List<CostSource?> CostSourceOptions { get; } = new() { null, Models.Enums.CostSource.LCS, Models.Enums.CostSource.Online, Models.Enums.CostSource.CardShow, Models.Enums.CostSource.Break, Models.Enums.CostSource.Trade, Models.Enums.CostSource.Gift, Models.Enums.CostSource.PersonalCollection, Models.Enums.CostSource.Unknown };
+        public static List<Enums.Sport?> SportOptions { get; } = new() { null, Enums.Sport.Football, Enums.Sport.Baseball, Enums.Sport.Basketball };
+        public static List<Enums.CostSource?> CostSourceOptions { get; } = new() { null, Enums.CostSource.LCS, Enums.CostSource.Online, Enums.CostSource.CardShow, Enums.CostSource.Break, Enums.CostSource.Trade, Enums.CostSource.Gift, Enums.CostSource.PersonalCollection, Enums.CostSource.Unknown };
         public static List<string> ConditionOptions { get; } = new() { "Near Mint", "Like New", "Very Good", "Good", "Acceptable" };
 
         // Card Identity

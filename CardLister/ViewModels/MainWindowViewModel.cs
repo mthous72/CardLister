@@ -1,16 +1,17 @@
 using System;
 using System.Threading.Tasks;
-using CardLister.Services;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         private readonly IServiceProvider _services;
         private readonly ISettingsService _settingsService;
+        private INavigationService? _navigationService;
 
         [ObservableProperty]
         private ViewModelBase _currentPage;
@@ -33,7 +34,8 @@ namespace CardLister.ViewModels
                 wizard.OnSetupComplete = () =>
                 {
                     ShowSidebar = true;
-                    NavigateTo("Scan");
+                    // Fire-and-forget navigation is acceptable for UI callbacks
+                    _ = NavigateTo("Scan");
                 };
                 _currentPage = wizard;
             }
@@ -56,30 +58,18 @@ namespace CardLister.ViewModels
         }
 
         [RelayCommand]
-        private void NavigateTo(string page)
+        private async Task NavigateTo(string page)
         {
-            CurrentPageName = page;
-            CurrentPage = page switch
-            {
-                "Scan" => _services.GetRequiredService<ScanViewModel>(),
-                "BulkScan" => _services.GetRequiredService<BulkScanViewModel>(),
-                "Inventory" => _services.GetRequiredService<InventoryViewModel>(),
-                "Pricing" => _services.GetRequiredService<PricingViewModel>(),
-                "Export" => _services.GetRequiredService<ExportViewModel>(),
-                "Reports" => _services.GetRequiredService<ReportsViewModel>(),
-                "Checklists" => _services.GetRequiredService<ChecklistManagerViewModel>(),
-                "Settings" => _services.GetRequiredService<SettingsViewModel>(),
-                "Reprice" => _services.GetRequiredService<RepriceViewModel>(),
-                _ => CurrentPage
-            };
+            // Lazy-resolve navigation service to avoid circular dependency
+            _navigationService ??= _services.GetRequiredService<INavigationService>();
+            await _navigationService.NavigateAsync(page);
         }
 
         public async Task NavigateToEditCardAsync(int cardId)
         {
-            var editVm = _services.GetRequiredService<EditCardViewModel>();
-            await editVm.LoadCardAsync(cardId);
-            CurrentPageName = "EditCard";
-            CurrentPage = editVm;
+            // Lazy-resolve navigation service to avoid circular dependency
+            _navigationService ??= _services.GetRequiredService<INavigationService>();
+            await _navigationService.NavigateToEditCardAsync(cardId);
         }
 
         public void Dispose()

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CardLister.Helpers;
-using CardLister.Models;
-using CardLister.Services;
+using CardLister.Core.Helpers;
+using CardLister.Core.Models;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class RepriceViewModel : ViewModelBase
     {

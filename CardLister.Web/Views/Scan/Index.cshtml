@@ -1,0 +1,142 @@
+@model CardLister.Web.Models.ScanUploadViewModel
+@{
+    ViewData["Title"] = "Scan Card";
+}
+
+<div class="container mt-4">
+    <h1 class="display-5 mb-4"><i class="bi bi-camera"></i> Scan Card</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Upload Card Images</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Front Image Upload -->
+                        <div class="mb-4">
+                            <label for="frontImage" class="form-label">
+                                <strong>Front Image</strong> <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" class="form-control" id="frontImage" name="frontImage"
+                                   accept="image/*" capture="environment" required
+                                   onchange="previewImage(this, 'frontPreview')">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> On mobile, you can use your camera directly
+                            </small>
+                            <div id="frontPreview" class="mt-3" style="display:none;">
+                                <img src="" class="img-fluid rounded" style="max-height: 300px;">
+                            </div>
+                        </div>
+
+                        <!-- Back Image Upload -->
+                        <div class="mb-4">
+                            <label for="backImage" class="form-label">
+                                <strong>Back Image</strong> <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input type="file" class="form-control" id="backImage" name="backImage"
+                                   accept="image/*" capture="environment"
+                                   onchange="previewImage(this, 'backPreview')">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Back image helps with grading and authenticity
+                            </small>
+                            <div id="backPreview" class="mt-3" style="display:none;">
+                                <img src="" class="img-fluid rounded" style="max-height: 300px;">
+                            </div>
+                        </div>
+
+                        <!-- Model Selection -->
+                        <div class="mb-4">
+                            <label for="selectedModel" class="form-label">
+                                <strong>AI Model</strong>
+                            </label>
+                            <select class="form-select" id="selectedModel" name="selectedModel">
+                                @foreach (var availableModel in Model.AvailableModels)
+                                {
+                                    <option value="@availableModel" selected="@(availableModel == Model.SelectedModel)">
+                                        @availableModel @(availableModel.Contains("free") ? "(Free)" : "")
+                                    </option>
+                                }
+                            </select>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Free models may have rate limits. Paid models are faster and more accurate.
+                            </small>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="bi bi-magic"></i> Scan Card with AI
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightbulb"></i> Tips for Best Results</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Ensure good lighting when taking photos</li>
+                        <li>Capture the entire card, including borders</li>
+                        <li>Avoid glare and reflections</li>
+                        <li>Keep the card flat and centered</li>
+                        <li>Higher resolution images produce better results</li>
+                        <li>Free models may take 30-60 seconds to process</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const img = preview.querySelector('img');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Show loading spinner on submit
+        document.getElementById('uploadForm').addEventListener('submit', function () {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Scanning... This may take up to 60 seconds';
+        });
+    </script>
+}

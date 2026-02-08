@@ -1,6 +1,7 @@
 using System.Diagnostics;
+using CardLister.Core.Services;
 
-namespace CardLister.Services
+namespace CardLister.Desktop.Services
 {
     public class SystemBrowserService : IBrowserService
     {

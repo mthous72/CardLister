@@ -1,0 +1,262 @@
+@model CardLister.Web.Models.ScanResultViewModel
+@using System.IO
+@{
+    ViewData["Title"] = "Scan Results";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Scan Results</h1>
+        <div>
+            <form asp-action="Save" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-save"></i> Save Card
+                </button>
+            </form>
+            <form asp-action="Discard" method="post" class="d-inline ms-2">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Discard
+                </button>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.VerificationResult != null && Model.VerificationResult.OverallConfidence != CardLister.Core.Models.Enums.VerificationConfidence.Low)
+    {
+        <div class="alert @(Model.VerificationResult.OverallConfidence == CardLister.Core.Models.Enums.VerificationConfidence.High ? "alert-success" :
+                             Model.VerificationResult.OverallConfidence == CardLister.Core.Models.Enums.VerificationConfidence.Medium ? "alert-warning" : "alert-info")">
+            <h5>
+                <i class="bi bi-check-circle"></i>
+                Verification: @Model.VerificationResult.OverallConfidence Confidence
+            </h5>
+            @if (Model.VerificationResult.ChecklistMatch)
+            {
+                <p class="mb-0">
+                    <strong>Checklist Matched</strong> - Card verified against checklist database
+                </p>
+            }
+            @if (Model.VerificationResult.Suggestions?.Count > 0)
+            {
+                <p class="mb-0 mt-2"><strong>Suggestions:</strong></p>
+                <ul class="mb-0">
+                    @foreach (var suggestion in Model.VerificationResult.Suggestions)
+                    {
+                        <li>@suggestion</li>
+                    }
+                </ul>
+            }
+            @if (!string.IsNullOrEmpty(Model.VerificationResult.SuggestedVariation))
+            {
+                <p class="mb-0 mt-2">
+                    <strong>Suggested Variation:</strong> @Model.VerificationResult.SuggestedVariation
+                </p>
+            }
+        </div>
+    }
+
+    <div class="row">
+        <!-- Card Images -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Images</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.FrontImagePath))
+                    {
+                        <h6>Front</h6>
+                        <img src="@Url.Content($"~/uploads/{System.IO.Path.GetFileName(Model.FrontImagePath)}")"
+                             class="img-fluid mb-3 rounded" alt="Card Front">
+                    }
+                    @if (!string.IsNullOrEmpty(Model.BackImagePath))
+                    {
+                        <h6>Back</h6>
+                        <img src="@Url.Content($"~/uploads/{System.IO.Path.GetFileName(Model.BackImagePath)}")"
+                             class="img-fluid rounded" alt="Card Back">
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanned Card Data -->
+        <div class="col-md-8">
+            @if (Model.ScannedCard != null)
+            {
+                <!-- Basic Info -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Basic Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Player Name:</dt>
+                                    <dd class="col-sm-7"><strong>@Model.ScannedCard.PlayerName</strong></dd>
+
+                                    <dt class="col-sm-5">Sport:</dt>
+                                    <dd class="col-sm-7">@Model.ScannedCard.Sport</dd>
+
+                                    <dt class="col-sm-5">Brand:</dt>
+                                    <dd class="col-sm-7">@(Model.ScannedCard.Brand ?? "-")</dd>
+
+                                    <dt class="col-sm-5">Manufacturer:</dt>
+                                    <dd class="col-sm-7">@(Model.ScannedCard.Manufacturer ?? "-")</dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Year:</dt>
+                                    <dd class="col-sm-7">@(Model.ScannedCard.Year?.ToString() ?? "-")</dd>
+
+                                    <dt class="col-sm-5">Card Number:</dt>
+                                    <dd class="col-sm-7">@(Model.ScannedCard.CardNumber ?? "-")</dd>
+
+                                    <dt class="col-sm-5">Team:</dt>
+                                    <dd class="col-sm-7">@(Model.ScannedCard.Team ?? "-")</dd>
+
+                                    <dt class="col-sm-5">Set Name:</dt>
+                                    <dd class="col-sm-7">@(Model.ScannedCard.SetName ?? "-")</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Features -->
+                @if (Model.ScannedCard.IsRookie || Model.ScannedCard.IsAuto || Model.ScannedCard.IsRelic ||
+                     Model.ScannedCard.IsShortPrint || Model.ScannedCard.IsSSP)
+                {
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Card Features</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                @if (Model.ScannedCard.IsRookie)
+                                {
+                                    <span class="badge bg-warning text-dark">Rookie Card</span>
+                                }
+                                @if (Model.ScannedCard.IsAuto)
+                                {
+                                    <span class="badge bg-info">Autograph</span>
+                                }
+                                @if (Model.ScannedCard.IsRelic)
+                                {
+                                    <span class="badge bg-success">Relic/Memorabilia</span>
+                                }
+                                @if (Model.ScannedCard.IsShortPrint)
+                                {
+                                    <span class="badge bg-secondary">Short Print</span>
+                                }
+                                @if (Model.ScannedCard.IsSSP)
+                                {
+                                    <span class="badge bg-dark">Super Short Print</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Variation & Parallel -->
+                @if (!string.IsNullOrEmpty(Model.ScannedCard.VariationType) ||
+                     !string.IsNullOrEmpty(Model.ScannedCard.ParallelName) ||
+                     !string.IsNullOrEmpty(Model.ScannedCard.SerialNumbered))
+                {
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Variation & Parallel</h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                @if (!string.IsNullOrEmpty(Model.ScannedCard.VariationType))
+                                {
+                                    <dt class="col-sm-4">Variation Type:</dt>
+                                    <dd class="col-sm-8">@Model.ScannedCard.VariationType</dd>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.ScannedCard.ParallelName))
+                                {
+                                    <dt class="col-sm-4">Parallel Name:</dt>
+                                    <dd class="col-sm-8">@Model.ScannedCard.ParallelName</dd>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.ScannedCard.SerialNumbered))
+                                {
+                                    <dt class="col-sm-4">Serial Number:</dt>
+                                    <dd class="col-sm-8">
+                                        <span class="badge bg-primary">@Model.ScannedCard.SerialNumbered</span>
+                                    </dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                }
+
+                <!-- Grading Info -->
+                @if (Model.ScannedCard.IsGraded)
+                {
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Grading Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Grading Company:</dt>
+                                <dd class="col-sm-8">@Model.ScannedCard.GradeCompany</dd>
+
+                                <dt class="col-sm-4">Grade:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-success fs-6">@Model.ScannedCard.GradeValue</span>
+                                </dd>
+
+                                @if (!string.IsNullOrEmpty(Model.ScannedCard.CertNumber))
+                                {
+                                    <dt class="col-sm-4">Cert Number:</dt>
+                                    <dd class="col-sm-8">@Model.ScannedCard.CertNumber</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.ScannedCard.AutoGrade))
+                                {
+                                    <dt class="col-sm-4">Auto Grade:</dt>
+                                    <dd class="col-sm-8">@Model.ScannedCard.AutoGrade</dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                }
+
+                <!-- Condition -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Condition</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.ScannedCard.Condition</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Scan Another
+                    </a>
+                    <form asp-action="Save" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-save"></i> Save to Inventory
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <h5>No Scan Data</h5>
+                    <p>Unable to retrieve scan results. Please try scanning again.</p>
+                    <a asp-action="Index" class="btn btn-primary">Scan New Card</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

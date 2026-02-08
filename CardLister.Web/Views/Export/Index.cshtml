@@ -1,0 +1,200 @@
+@model CardLister.Web.Models.ExportListViewModel
+@{
+    ViewData["Title"] = "Export to CSV";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="display-5 mb-4"><i class="bi bi-file-earmark-spreadsheet"></i> Export to CSV</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Cards Ready for Export -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5><i class="bi bi-check-circle"></i> Ready for Export (@Model.ReadyCards.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.ReadyCards.Any())
+            {
+                <div class="mb-3">
+                    <form asp-action="GenerateCsv" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="platform" value="Whatnot" />
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-download"></i> Generate Whatnot CSV (@Model.ReadyCards.Count cards)
+                        </button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Sport</th>
+                                <th>Year</th>
+                                <th>Brand</th>
+                                <th>Set</th>
+                                <th>Card #</th>
+                                <th>Listing Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in Model.ReadyCards)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@card.PlayerName</strong>
+                                        @if (card.IsRookie)
+                                        {
+                                            <span class="badge bg-warning text-dark">RC</span>
+                                        }
+                                        @if (card.IsAuto)
+                                        {
+                                            <span class="badge bg-info">Auto</span>
+                                        }
+                                        @if (card.IsGraded)
+                                        {
+                                            <span class="badge bg-success">@card.GradeCompany @card.GradeValue</span>
+                                        }
+                                    </td>
+                                    <td>@card.Sport</td>
+                                    <td>@(card.Year?.ToString() ?? "-")</td>
+                                    <td>@(card.Brand ?? "-")</td>
+                                    <td>@(card.SetName ?? "-")</td>
+                                    <td>@(card.CardNumber ?? "-")</td>
+                                    <td>
+                                        @if (card.ListingPrice.HasValue)
+                                        {
+                                            <span class="text-success fw-bold">$@card.ListingPrice.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">No price</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Preview" asp-route-id="@card.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Preview
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No cards are marked as "Ready" for export.
+                    Mark cards as ready from the list below.
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Priced Cards (Can be marked as ready) -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5><i class="bi bi-currency-dollar"></i> Priced Cards (@Model.PricedCards.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.PricedCards.Any())
+            {
+                <p class="text-muted">
+                    <i class="bi bi-info-circle"></i> These cards have been priced but not yet marked as ready for export.
+                    Review them and mark as ready when you're satisfied with the pricing.
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Sport</th>
+                                <th>Year</th>
+                                <th>Brand</th>
+                                <th>Set</th>
+                                <th>Card #</th>
+                                <th>Listing Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in Model.PricedCards)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@card.PlayerName</strong>
+                                        @if (card.IsRookie)
+                                        {
+                                            <span class="badge bg-warning text-dark">RC</span>
+                                        }
+                                        @if (card.IsAuto)
+                                        {
+                                            <span class="badge bg-info">Auto</span>
+                                        }
+                                        @if (card.IsGraded)
+                                        {
+                                            <span class="badge bg-success">@card.GradeCompany @card.GradeValue</span>
+                                        }
+                                    </td>
+                                    <td>@card.Sport</td>
+                                    <td>@(card.Year?.ToString() ?? "-")</td>
+                                    <td>@(card.Brand ?? "-")</td>
+                                    <td>@(card.SetName ?? "-")</td>
+                                    <td>@(card.CardNumber ?? "-")</td>
+                                    <td>
+                                        @if (card.ListingPrice.HasValue)
+                                        {
+                                            <span class="text-success fw-bold">$@card.ListingPrice.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">No price</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <form asp-action="MarkAsReady" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="cardId" value="@card.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check-circle"></i> Mark as Ready
+                                            </button>
+                                        </form>
+                                        <a asp-action="Preview" asp-route-id="@card.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Preview
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No priced cards available.
+                    Price cards from the <a asp-controller="Pricing" asp-action="Index">Pricing</a> page first.
+                </div>
+            }
+        </div>
+    </div>
+</div>

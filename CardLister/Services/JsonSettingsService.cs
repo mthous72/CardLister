@@ -3,9 +3,10 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using CardLister.Models;
+using CardLister.Core.Models;
+using CardLister.Core.Services;
 
-namespace CardLister.Services
+namespace CardLister.Desktop.Services
 {
     public class JsonSettingsService : ISettingsService
     {

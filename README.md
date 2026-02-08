@@ -1,14 +1,22 @@
 # CardLister
 
-A desktop application for sports card sellers that uses AI vision to scan card images, manage inventory, research pricing, and export Whatnot-compatible CSV files for bulk listing.
+A dual-platform application for sports card sellers that uses AI vision to scan card images, manage inventory, research pricing, and export Whatnot-compatible CSV files for bulk listing.
 
-Built with **C# / .NET 8**, **Avalonia UI 11**, and the **MVVM pattern**.
+**Two ways to use CardLister:**
+- **Desktop App** - Full-featured Windows/macOS application built with Avalonia UI
+- **Web App** - Mobile-friendly web interface for on-the-go scanning and inventory management (NEW in v2.0!)
 
-> **Note:** This is a **minimally viable product (MVP)**. The core workflow -- scan, save, price, export -- is functional, but many features are early-stage and actively being improved. Expect rough edges, and please report issues or contribute if you're interested.
+Built with **C# / .NET 8**, using **Avalonia UI 11** for desktop and **ASP.NET Core MVC** for web.
+
+> **Note:** This is a **production-ready application** with complete features for the core workflow. The desktop app is mature and stable; the web app is newly released for mobile access.
 
 ## Download
 
 Pre-built executables are available on the [Releases page](https://github.com/mthous72/CardLister/releases). No .NET runtime install needed -- these are fully self-contained.
+
+### Desktop Application
+
+For power users who want the full desktop experience with bulk scanning and advanced features:
 
 | Platform | File |
 |----------|------|
@@ -16,9 +24,31 @@ Pre-built executables are available on the [Releases page](https://github.com/mt
 | macOS Intel | `CardLister-osx-x64.zip` -- extract all files to same folder, run `./CardLister` from terminal |
 | macOS Apple Silicon (M1/M2/M3/M4) | `CardLister-osx-arm64.zip` -- extract all files to same folder, run `./CardLister` from terminal |
 
-## What's Working (MVP)
+### Web Application (NEW in v2.0!)
+
+For mobile access - scan cards with your phone's camera, manage inventory on-the-go:
+
+| Platform | File | Usage |
+|----------|------|-------|
+| Windows (x64) | `CardLister-Web-Windows-v2.0.0.zip` | Extract and double-click `StartWeb.bat` |
+| macOS Intel | `CardLister-Web-macOS-Intel-v2.0.0.zip` | Extract and run `./start-web.sh` |
+| macOS Apple Silicon | `CardLister-Web-macOS-ARM-v2.0.0.zip` | Extract and run `./start-web.sh` |
+| Linux (x64) | `CardLister-Web-Linux-v2.0.0.tar.gz` | Extract and run `./start-web.sh` |
+
+**Web App Quick Start:**
+1. Download the package for your computer's OS (not your phone!)
+2. Extract and run the launcher script
+3. Server starts at `http://localhost:5000` (browser opens automatically)
+4. On your phone: Connect to same Wi-Fi → Open browser → Go to `http://YOUR-COMPUTER-IP:5000`
+5. Use your phone's camera to scan cards, manage inventory, research prices!
+
+**Shared Database:** Desktop and Web apps share the same SQLite database, so your inventory stays in sync.
+
+## What's Working
 
 These features are implemented and functional today:
+
+### Desktop Application Features
 
 - **AI Card Scanning** -- Browse for a photo of any sports card (front + optional back) and AI vision extracts player name, year, set, brand, parallel, serial numbering, and more. Uses free OpenRouter vision models with automatic fallback across 11 models on rate limiting.
 - **Bulk Scan** -- Select multiple card images at once, optionally pair front/back images, and scan them all in one batch with progress tracking and cancellation support. Rate-limiting built in for free-tier models.
@@ -41,9 +71,32 @@ These features are implemented and functional today:
 - **Setup Wizard** -- First-run walkthrough for entering API keys and setting preferences.
 - **Local-First Data** -- All data is stored on your machine in SQLite. API keys are stored in your local app data folder, never in the repo.
 
+### Web Application Features (NEW in v2.0!)
+
+Mobile-optimized web interface for on-the-go card management:
+
+- **Mobile Camera Scanning** -- Use your phone's camera to scan cards directly from the web browser. Touch-optimized upload interface with instant camera access.
+- **Single Card Scanning** -- Scan one card at a time with AI vision (front + optional back photo). Same AI models and verification as desktop app.
+- **Inventory Management** -- Browse, search, filter, edit, and delete cards from any device. Responsive design optimized for phone and tablet screens.
+- **Pricing Research** -- Quick access to eBay and Terapeak pricing tools. Real-time profit calculator shows fees, revenue, and margin as you type.
+- **CSV Export** -- Generate and download Whatnot-compatible CSV files from your phone.
+- **Reports & Analytics** -- View sales reports, financial metrics, and inventory statistics from any device.
+- **Shared Database** -- Uses the same SQLite database as the desktop app with Write-Ahead Logging (WAL) for concurrent access. Changes in desktop immediately visible in web (and vice versa).
+- **No Installation on Mobile** -- Just open your phone's browser and navigate to your computer's IP address. No app store, no downloads on your phone!
+- **Network Access** -- Run the server on your computer, access from any device on your local Wi-Fi network. Perfect for scanning at card shows or quick inventory checks away from your desk.
+
+**Use Cases:**
+- Scan cards at card shows using your phone's camera
+- Quick price checks while shopping for cards
+- Update inventory from couch/bed without opening laptop
+- Show your inventory to potential buyers on your phone
+- Access full reports and analytics from tablet
+
 ## Known Limitations
 
-This is an MVP -- here's what's rough or missing:
+### Desktop App
+
+Here's what's rough or missing in the desktop application:
 
 - **Checklist data focused on recent years** -- 97 sets are seeded (2017-2024 for major Panini/Topps releases), but older sets and niche brands are not included. Cards from unseeded sets will scan fine but won't get checklist verification.
 - **No drag-and-drop** -- Images must be added via the file browser. No clipboard paste either.
@@ -55,9 +108,22 @@ This is an MVP -- here's what's rough or missing:
 - **AI accuracy varies** -- Free vision models are decent but not perfect (~70-80% accuracy on variations). The verification pipeline helps, but edge cases will slip through.
 - **Single-window only** -- No multi-window support, no system tray.
 
+### Web App
+
+Limitations specific to the web application:
+
+- **No Bulk Scanning** -- Web app only supports single-card scanning. Use desktop app for batch scanning (10+ cards).
+- **No Settings Configuration** -- API keys and preferences must be configured in the desktop app. Web app reads from the shared `settings.json` file.
+- **No Authentication** -- Web app has no login system in v2.0. Only use on trusted Wi-Fi networks (home/office). Anyone on your network can access it.
+- **HTTP Only** -- No HTTPS support yet. Data is not encrypted in transit on your local network.
+- **Local Network Only** -- Designed for local Wi-Fi access. Not suitable for internet deployment without authentication and HTTPS.
+- **Manual IP Entry** -- You need to find your computer's IP address and type it on your phone. No auto-discovery yet.
+
 ## Roadmap
 
 Planned improvements, roughly in priority order:
+
+### Desktop App
 
 - [ ] **Expand checklist database** -- Add pre-2017 sets, niche brands (Leaf, Sage, Upper Deck), and international releases
 - [ ] **Drag-and-drop image support** -- Drop card photos directly onto the scan area
@@ -73,6 +139,20 @@ Planned improvements, roughly in priority order:
 - [ ] **Multi-card images** -- Detect and split photos containing multiple cards
 - [ ] **Price history charts** -- Visualize price trends over time for individual cards
 - [ ] **Bulk edit** -- Select multiple cards and update fields (status, price, etc.) in one action
+
+### Web App
+
+Future enhancements for the web application:
+
+- [ ] **Authentication** -- Add login system for multi-user support and secure access
+- [ ] **HTTPS Support** -- SSL/TLS certificates for encrypted communication
+- [ ] **Progressive Web App (PWA)** -- Install web app to phone home screen like a native app, offline support
+- [ ] **Auto-Discovery** -- Automatic detection of server on local network (no manual IP entry)
+- [ ] **Bulk Scanning** -- Upload multiple photos for batch scanning from web interface
+- [ ] **Settings Configuration** -- Configure API keys and preferences from web interface
+- [ ] **Real-Time Sync** -- Live updates using SignalR when changes are made in desktop app
+- [ ] **Dark Mode** -- Toggle between light and dark themes
+- [ ] **Cloud Deployment** -- Optional cloud hosting for access from anywhere (with authentication)
 
 ## How It Works
 
@@ -95,9 +175,11 @@ Planned improvements, roughly in priority order:
 | Component | Technology |
 |-----------|-----------|
 | Language | C# / .NET 8 |
-| UI Framework | Avalonia UI 11 (Fluent theme) |
-| Architecture | MVVM (CommunityToolkit.Mvvm) |
-| Database | SQLite via Entity Framework Core |
+| Desktop UI | Avalonia UI 11 (Fluent theme) |
+| Web UI | ASP.NET Core 8.0 MVC with Razor Views |
+| Frontend | Bootstrap 5 (responsive, mobile-first) |
+| Architecture | MVVM (Desktop), MVC (Web), 3-Project Structure |
+| Database | SQLite via Entity Framework Core with WAL mode |
 | AI Vision | OpenRouter API (11 free vision models with automatic fallback) |
 | Image Hosting | ImgBB API |
 | CSV Export | CsvHelper |
@@ -105,18 +187,35 @@ Planned improvements, roughly in priority order:
 
 ## Project Structure
 
+The codebase uses a **3-project architecture** for maximum code reuse and separation of concerns:
+
 ```
-CardLister/
-├── Models/           Domain entities (Card, PriceHistory, AppSettings, enums)
-├── ViewModels/       MVVM ViewModels with observable properties and commands
-├── Views/            Avalonia XAML views (no business logic in code-behind)
-├── Services/         Service interfaces and implementations (scanning, export, pricing)
-├── Data/             EF Core DbContext, seeders, schema management
-├── Converters/       XAML value converters (currency, status badges, confidence colors)
-├── Helpers/          Utility classes (FuzzyMatcher, PriceCalculator)
-├── Styles/           Shared Avalonia styles
-└── Docs/             Design specs and planning documents
+CardLister.sln
+│
+├── CardLister.Core/              # Shared business logic (net8.0 library)
+│   ├── Models/                   # Domain entities (Card, PriceHistory, enums)
+│   ├── Services/                 # Service interfaces + implementations
+│   ├── Data/                     # EF Core DbContext, migrations, seeders
+│   └── Helpers/                  # Shared utilities (FuzzyMatcher, etc.)
+│
+├── CardLister.Desktop/           # Desktop application (Avalonia)
+│   ├── ViewModels/               # MVVM ViewModels (CommunityToolkit.Mvvm)
+│   ├── Views/                    # Avalonia XAML views
+│   ├── Converters/               # XAML value converters
+│   ├── Services/                 # Desktop-specific services (file dialogs, etc.)
+│   └── Styles/                   # Avalonia styles
+│
+├── CardLister.Web/               # Web application (ASP.NET Core MVC)
+│   ├── Controllers/              # MVC controllers (Home, Scan, Inventory, etc.)
+│   ├── Views/                    # Razor views with Bootstrap 5
+│   ├── ViewModels/               # DTOs for views
+│   ├── Services/                 # Web-specific services (file upload, etc.)
+│   └── wwwroot/                  # Static assets (CSS, JS, images)
+│
+└── Docs/                         # Design specs and planning documents
 ```
+
+**Code Reuse:** ~55% of the codebase is shared via `CardLister.Core`, including all business logic, database access, AI scanning, pricing, export, and validation.
 
 ## Building from Source
 
@@ -126,14 +225,23 @@ CardLister/
 
 ### Build & Run
 
+**Desktop App:**
 ```bash
 git clone https://github.com/mthous72/CardLister.git
 cd CardLister
 dotnet run --project CardLister
 ```
 
+**Web App:**
+```bash
+cd CardLister
+dotnet run --project CardLister.Web
+# Open browser to http://localhost:5000
+```
+
 ### Publish Self-Contained Executables
 
+**Desktop App:**
 ```bash
 # Windows
 dotnet publish CardLister -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
@@ -145,14 +253,45 @@ dotnet publish CardLister -c Release -r osx-x64 --self-contained -p:PublishSingl
 dotnet publish CardLister -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
+**Web App (Use build scripts for complete packages with launcher scripts and documentation):**
+```bash
+# Windows - Creates ZIP with StartWeb.bat launcher
+./build-web-package.bat
+
+# macOS/Linux - Creates all 3 packages (macOS Intel, macOS ARM, Linux)
+bash build-web-package.sh
+```
+
+**Or manually publish Web App:**
+```bash
+# Windows
+dotnet publish CardLister.Web/CardLister.Web.csproj -c Release -r win-x64 --self-contained -o publish/web-win
+
+# macOS Intel
+dotnet publish CardLister.Web/CardLister.Web.csproj -c Release -r osx-x64 --self-contained -o publish/web-macos-intel
+
+# macOS ARM
+dotnet publish CardLister.Web/CardLister.Web.csproj -c Release -r osx-arm64 --self-contained -o publish/web-macos-arm
+
+# Linux
+dotnet publish CardLister.Web/CardLister.Web.csproj -c Release -r linux-x64 --self-contained -o publish/web-linux
+```
+
 ## Configuration
 
-On first launch, a setup wizard walks you through entering your API keys:
+**Desktop App:** On first launch, a setup wizard walks you through entering your API keys.
 
+**Web App:** Configuration must be done via the Desktop app. The Web app reads from the shared `settings.json` file.
+
+**API Keys needed:**
 - **OpenRouter API key** ([get one here](https://openrouter.ai/keys)) -- Free to sign up. The app defaults to free vision models, so scanning costs nothing.
 - **ImgBB API key** ([get one here](https://api.imgbb.com/)) -- Optional. Only needed if you want to upload images for Whatnot listings.
 
-All settings are stored locally in `%LocalAppData%\CardLister\config.json` (Windows) or `~/Library/Application Support/CardLister/config.json` (macOS). Your card database is stored alongside it as `cards.db`. Nothing is sent anywhere except the API calls you initiate.
+**File Locations:**
+- **Settings:** `%APPDATA%\CardLister\settings.json` (Windows) or `~/Library/Application Support/CardLister/settings.json` (macOS/Linux)
+- **Database:** `%APPDATA%\CardLister\cards.db` (Windows) or `~/Library/Application Support/CardLister/cards.db` (macOS) or `~/.local/share/CardLister/cards.db` (Linux)
+
+**Shared Between Apps:** Desktop and Web apps use the same settings.json and cards.db files, so your API keys and inventory are automatically synced. Nothing is sent anywhere except the API calls you initiate.
 
 ## Supported Sports
 

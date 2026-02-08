@@ -1,0 +1,172 @@
+@model CardLister.Web.Models.SalesReportViewModel
+@{
+    ViewData["Title"] = "Sales Report";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5"><i class="bi bi-cart-check"></i> Sales Report</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="bi bi-calendar3"></i> Filter by Date Range</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Sales" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" name="startDate"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-4">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate" name="endDate"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Sales</h6>
+                    <h2 class="text-primary mb-0">@Model.TotalSales</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Revenue</h6>
+                    <h2 class="text-success mb-0">$@Model.TotalRevenue.ToString("N2")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Profit</h6>
+                    <h2 class="@(Model.TotalProfit >= 0 ? "text-success" : "text-danger") mb-0">
+                        $@Model.TotalProfit.ToString("N2")
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Average Profit</h6>
+                    <h2 class="@(Model.AverageProfit >= 0 ? "text-success" : "text-danger") mb-0">
+                        $@Model.AverageProfit.ToString("N2")
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Details -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Sales Details (@Model.StartDate.ToString("MM/dd/yyyy") - @Model.EndDate.ToString("MM/dd/yyyy"))</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.SoldCards.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sale Date</th>
+                                <th>Player</th>
+                                <th>Sport</th>
+                                <th>Year</th>
+                                <th>Brand/Set</th>
+                                <th>Card #</th>
+                                <th>Sale Price</th>
+                                <th>Cost Basis</th>
+                                <th>Profit</th>
+                                <th>Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in Model.SoldCards)
+                            {
+                                var profit = (card.SalePrice ?? 0) - (card.CostBasis ?? 0);
+                                var margin = card.CostBasis > 0 ? (profit / card.CostBasis.Value) * 100 : 0;
+                                <tr>
+                                    <td>@card.SaleDate?.ToString("MM/dd/yyyy")</td>
+                                    <td>
+                                        <strong>@card.PlayerName</strong>
+                                        @if (card.IsRookie)
+                                        {
+                                            <span class="badge bg-warning text-dark">RC</span>
+                                        }
+                                        @if (card.IsAuto)
+                                        {
+                                            <span class="badge bg-info">Auto</span>
+                                        }
+                                        @if (card.IsGraded)
+                                        {
+                                            <span class="badge bg-success">@card.GradeCompany @card.GradeValue</span>
+                                        }
+                                    </td>
+                                    <td>@card.Sport</td>
+                                    <td>@(card.Year?.ToString() ?? "-")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(card.Brand))
+                                        {
+                                            <span>@card.Brand</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(card.SetName))
+                                        {
+                                            <br /><small class="text-muted">@card.SetName</small>
+                                        }
+                                    </td>
+                                    <td>@(card.CardNumber ?? "-")</td>
+                                    <td class="text-success fw-bold">$@(card.SalePrice?.ToString("N2") ?? "0.00")</td>
+                                    <td class="text-warning">$@(card.CostBasis?.ToString("N2") ?? "0.00")</td>
+                                    <td class="@(profit >= 0 ? "text-success" : "text-danger") fw-bold">
+                                        $@profit.ToString("N2")
+                                    </td>
+                                    <td class="@(margin >= 0 ? "text-success" : "text-danger")">
+                                        @margin.ToString("F1")%
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="6" class="text-end">Totals:</th>
+                                <th class="text-success">$@Model.TotalRevenue.ToString("N2")</th>
+                                <th class="text-warning">$@Model.SoldCards.Where(c => c.CostBasis.HasValue).Sum(c => c.CostBasis!.Value).ToString("N2")</th>
+                                <th class="@(Model.TotalProfit >= 0 ? "text-success" : "text-danger")">
+                                    $@Model.TotalProfit.ToString("N2")
+                                </th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> No sales found for the selected date range.
+                </div>
+            }
+        </div>
+    </div>
+</div>

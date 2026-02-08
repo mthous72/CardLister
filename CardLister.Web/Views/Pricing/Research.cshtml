@@ -1,0 +1,283 @@
+@model CardLister.Web.Models.PricingResearchViewModel
+@{
+    ViewData["Title"] = "Price Research";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Price Research</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Card Info -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Card Details</h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">@Model.Card.PlayerName</h4>
+                    <dl class="mb-0">
+                        <dt>Sport:</dt>
+                        <dd>@Model.Card.Sport</dd>
+
+                        @if (Model.Card.Year.HasValue)
+                        {
+                            <dt>Year:</dt>
+                            <dd>@Model.Card.Year</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Card.Brand))
+                        {
+                            <dt>Brand:</dt>
+                            <dd>@Model.Card.Brand</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Card.SetName))
+                        {
+                            <dt>Set:</dt>
+                            <dd>@Model.Card.SetName</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Card.CardNumber))
+                        {
+                            <dt>Card #:</dt>
+                            <dd>@Model.Card.CardNumber</dd>
+                        }
+                    </dl>
+
+                    <!-- Card Features -->
+                    @if (Model.Card.IsRookie || Model.Card.IsAuto || Model.Card.IsRelic || Model.Card.IsGraded)
+                    {
+                        <hr>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (Model.Card.IsRookie)
+                            {
+                                <span class="badge bg-warning text-dark">Rookie</span>
+                            }
+                            @if (Model.Card.IsAuto)
+                            {
+                                <span class="badge bg-info">Auto</span>
+                            }
+                            @if (Model.Card.IsRelic)
+                            {
+                                <span class="badge bg-success">Relic</span>
+                            }
+                            @if (Model.Card.IsGraded)
+                            {
+                                <span class="badge bg-primary">@Model.Card.GradeCompany @Model.Card.GradeValue</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- External Research Links -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>External Research</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Model.TerapeakUrl" target="_blank" class="btn btn-outline-primary">
+                            <i class="bi bi-graph-up"></i> Open Terapeak
+                        </a>
+                        <a href="@Model.EbaySoldUrl" target="_blank" class="btn btn-outline-success">
+                            <i class="bi bi-cart"></i> Open eBay Sold
+                        </a>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="bi bi-info-circle"></i> Links will open in new tab
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Set Price</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Save" method="post" id="pricingForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="cardId" value="@Model.Card.Id" />
+
+                        <!-- Estimated Value -->
+                        <div class="mb-4">
+                            <label for="estimatedValue" class="form-label">
+                                <strong>Estimated Market Value</strong>
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="estimatedValue" name="estimatedValue"
+                                       value="@Model.EstimatedValue" step="0.01" min="0"
+                                       onchange="calculateSuggested()">
+                            </div>
+                            <small class="text-muted">
+                                Based on recent sold listings (Terapeak, eBay, etc.)
+                            </small>
+                        </div>
+
+                        <!-- Suggested Price Display -->
+                        @if (Model.SuggestedPrice.HasValue)
+                        {
+                            <div class="alert alert-info mb-4" id="suggestedPriceAlert">
+                                <h6>Suggested Listing Price</h6>
+                                <p class="fs-4 mb-0">
+                                    <strong>$<span id="suggestedPriceValue">@Model.SuggestedPrice.Value.ToString("N2")</span></strong>
+                                </p>
+                                <small class="text-muted">
+                                    Based on estimated value with pricing algorithm
+                                </small>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mb-4" id="suggestedPriceAlert" style="display:none;">
+                                <h6>Suggested Listing Price</h6>
+                                <p class="fs-4 mb-0">
+                                    <strong>$<span id="suggestedPriceValue">0.00</span></strong>
+                                </p>
+                                <small class="text-muted">
+                                    Based on estimated value with pricing algorithm
+                                </small>
+                            </div>
+                        }
+
+                        <!-- Listing Price -->
+                        <div class="mb-4">
+                            <label for="listingPrice" class="form-label">
+                                <strong>Listing Price</strong> <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="listingPrice" name="listingPrice"
+                                       value="@Model.ListingPrice" step="0.01" min="0" required>
+                            </div>
+                            <small class="text-muted">
+                                The price you'll list this card for on Whatnot/eBay
+                            </small>
+                        </div>
+
+                        <!-- Net Profit Calculator -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h6>Profit Calculator</h6>
+                                <div id="profitCalc" class="text-muted">
+                                    <small>Enter a listing price to see profit estimate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-save"></i> Save Pricing
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function calculateSuggested() {
+            const estimatedValue = parseFloat(document.getElementById('estimatedValue').value);
+
+            if (!estimatedValue || estimatedValue <= 0) {
+                document.getElementById('suggestedPriceAlert').style.display = 'none';
+                return;
+            }
+
+            // Call server to calculate suggested price
+            fetch('@Url.Action("CalculateSuggested")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    cardId: @Model.Card.Id,
+                    estimatedValue: estimatedValue
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('suggestedPriceValue').textContent = data.suggestedPrice.toFixed(2);
+                    document.getElementById('suggestedPriceAlert').style.display = 'block';
+
+                    // Auto-fill listing price
+                    document.getElementById('listingPrice').value = data.suggestedPrice.toFixed(2);
+                    calculateProfit();
+                }
+            })
+            .catch(error => console.error('Error calculating suggested price:', error));
+        }
+
+        function calculateProfit() {
+            const listingPrice = parseFloat(document.getElementById('listingPrice').value);
+            const costBasis = @(Model.Card.CostBasis?.ToString() ?? "0");
+
+            if (!listingPrice || listingPrice <= 0) {
+                document.getElementById('profitCalc').innerHTML = '<small class="text-muted">Enter a listing price to see profit estimate</small>';
+                return;
+            }
+
+            // Calculate fees (11% Whatnot default)
+            const feePercent = 0.11;
+            const fees = listingPrice * feePercent;
+            const netRevenue = listingPrice - fees;
+            const profit = netRevenue - costBasis;
+            const margin = costBasis > 0 ? ((profit / costBasis) * 100) : 0;
+
+            const profitClass = profit > 0 ? 'text-success' : (profit < 0 ? 'text-danger' : 'text-warning');
+
+            document.getElementById('profitCalc').innerHTML = `
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <td>Listing Price:</td>
+                        <td class="text-end">$${listingPrice.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>Fees (11%):</td>
+                        <td class="text-end text-danger">-$${fees.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>Net Revenue:</td>
+                        <td class="text-end">$${netRevenue.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td>Cost Basis:</td>
+                        <td class="text-end text-warning">-$${costBasis.toFixed(2)}</td>
+                    </tr>
+                    <tr class="fw-bold">
+                        <td>Net Profit:</td>
+                        <td class="text-end ${profitClass}">$${profit.toFixed(2)} (${margin.toFixed(1)}%)</td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        // Calculate profit when listing price changes
+        document.getElementById('listingPrice').addEventListener('input', calculateProfit);
+
+        // Calculate on page load if listing price exists
+        window.addEventListener('load', function() {
+            if (document.getElementById('listingPrice').value) {
+                calculateProfit();
+            }
+        });
+    </script>
+}

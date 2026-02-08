@@ -1,0 +1,102 @@
+﻿@model CardLister.Web.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="display-4 mb-4">CardLister Dashboard</h1>
+
+    <div class="row g-3">
+        <!-- Total Cards -->
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Cards</h5>
+                    <p class="display-4">@Model.TotalCards</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Value -->
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Total Inventory Value</h5>
+                    <p class="display-4">$@Model.TotalValue.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue -->
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <p class="display-4">$@Model.TotalRevenue.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+        <!-- Cards by Status -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Cards by Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col">
+                            <h6>Draft</h6>
+                            <p class="fs-3">@Model.DraftCards</p>
+                        </div>
+                        <div class="col">
+                            <h6>Priced</h6>
+                            <p class="fs-3">@Model.PricedCards</p>
+                        </div>
+                        <div class="col">
+                            <h6>Ready</h6>
+                            <p class="fs-3">@Model.ReadyCards</p>
+                        </div>
+                        <div class="col">
+                            <h6>Listed</h6>
+                            <p class="fs-3">@Model.ListedCards</p>
+                        </div>
+                        <div class="col">
+                            <h6>Sold</h6>
+                            <p class="fs-3">@Model.SoldCards</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+        <!-- Quick Actions -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="@Url.Action("Index", "Scan")" class="btn btn-primary btn-lg">
+                            <i class="bi bi-camera"></i> Scan New Card
+                        </a>
+                        <a href="@Url.Action("Index", "Inventory")" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-list"></i> View Inventory
+                        </a>
+                        <a href="@Url.Action("Index", "Pricing")" class="btn btn-info btn-lg">
+                            <i class="bi bi-currency-dollar"></i> Price Cards
+                        </a>
+                        <a href="@Url.Action("Index", "Export")" class="btn btn-success btn-lg">
+                            <i class="bi bi-download"></i> Export to CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

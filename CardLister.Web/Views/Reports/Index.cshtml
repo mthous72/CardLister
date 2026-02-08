@@ -1,0 +1,247 @@
+@model CardLister.Web.Models.ReportsViewModel
+@{
+    ViewData["Title"] = "Reports Dashboard";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="display-5 mb-4"><i class="bi bi-graph-up"></i> Reports Dashboard</h1>
+
+    <!-- Inventory Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="bi bi-box"></i> Inventory Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2 col-sm-4 mb-3">
+                            <div class="border rounded p-3">
+                                <h2 class="text-primary mb-0">@Model.TotalCards</h2>
+                                <small class="text-muted">Total Cards</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 mb-3">
+                            <div class="border rounded p-3">
+                                <h2 class="text-secondary mb-0">@Model.DraftCards</h2>
+                                <small class="text-muted">Draft</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 mb-3">
+                            <div class="border rounded p-3">
+                                <h2 class="text-info mb-0">@Model.PricedCards</h2>
+                                <small class="text-muted">Priced</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 mb-3">
+                            <div class="border rounded p-3">
+                                <h2 class="text-warning mb-0">@Model.ReadyCards</h2>
+                                <small class="text-muted">Ready</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 mb-3">
+                            <div class="border rounded p-3">
+                                <h2 class="text-primary mb-0">@Model.ListedCards</h2>
+                                <small class="text-muted">Listed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 mb-3">
+                            <div class="border rounded p-3">
+                                <h2 class="text-success mb-0">@Model.SoldCards</h2>
+                                <small class="text-muted">Sold</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-currency-dollar"></i> Financial Overview</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">Active Inventory Value:</dt>
+                        <dd class="col-sm-6 text-end">
+                            <span class="fs-5 text-success fw-bold">$@Model.TotalInventoryValue.ToString("N2")</span>
+                        </dd>
+
+                        <dt class="col-sm-6">Active Inventory Cost:</dt>
+                        <dd class="col-sm-6 text-end">
+                            <span class="fs-5 text-warning fw-bold">$@Model.TotalCostBasis.ToString("N2")</span>
+                        </dd>
+
+                        <dt class="col-sm-6">Total Revenue (Sold):</dt>
+                        <dd class="col-sm-6 text-end">
+                            <span class="fs-5 text-primary fw-bold">$@Model.TotalRevenue.ToString("N2")</span>
+                        </dd>
+
+                        <dt class="col-sm-6">Total Profit:</dt>
+                        <dd class="col-sm-6 text-end">
+                            <span class="fs-5 @(Model.TotalProfit >= 0 ? "text-success" : "text-danger") fw-bold">
+                                $@Model.TotalProfit.ToString("N2")
+                            </span>
+                        </dd>
+                    </dl>
+
+                    <div class="mt-3">
+                        <a asp-action="Financial" class="btn btn-success w-100">
+                            <i class="bi bi-graph-up"></i> View Detailed Financial Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="bi bi-pie-chart"></i> Cards by Sport</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CardsBySport.Any())
+                    {
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                @foreach (var sport in Model.CardsBySport.OrderByDescending(s => s.Value))
+                                {
+                                    <tr>
+                                        <td><strong>@sport.Key</strong></td>
+                                        <td class="text-end">
+                                            <span class="badge bg-primary">@sport.Value cards</span>
+                                        </td>
+                                        <td class="text-end" style="width: 40%;">
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar" role="progressbar"
+                                                     style="width: @((double)sport.Value / Model.TotalCards * 100)%"
+                                                     aria-valuenow="@sport.Value" aria-valuemin="0" aria-valuemax="@Model.TotalCards">
+                                                    @((double)sport.Value / Model.TotalCards * 100).ToString("F1")%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No cards in inventory yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-cart-check"></i> Recent Sales (Last 30 Days)</h5>
+                    <a asp-action="Sales" class="btn btn-light btn-sm">
+                        <i class="bi bi-file-earmark-text"></i> View Full Sales Report
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentSales.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Player</th>
+                                        <th>Sport</th>
+                                        <th>Year</th>
+                                        <th>Sale Price</th>
+                                        <th>Cost</th>
+                                        <th>Profit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var card in Model.RecentSales)
+                                    {
+                                        var profit = (card.SalePrice ?? 0) - (card.CostBasis ?? 0);
+                                        <tr>
+                                            <td>@card.SaleDate?.ToString("MM/dd/yyyy")</td>
+                                            <td>
+                                                <strong>@card.PlayerName</strong>
+                                                @if (card.IsRookie)
+                                                {
+                                                    <span class="badge bg-warning text-dark">RC</span>
+                                                }
+                                                @if (card.IsGraded)
+                                                {
+                                                    <span class="badge bg-success">@card.GradeCompany @card.GradeValue</span>
+                                                }
+                                            </td>
+                                            <td>@card.Sport</td>
+                                            <td>@(card.Year?.ToString() ?? "-")</td>
+                                            <td class="text-success fw-bold">$@(card.SalePrice?.ToString("N2") ?? "0.00")</td>
+                                            <td class="text-warning">$@(card.CostBasis?.ToString("N2") ?? "0.00")</td>
+                                            <td class="@(profit >= 0 ? "text-success" : "text-danger") fw-bold">
+                                                $@profit.ToString("N2")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> No sales in the last 30 days.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-calendar3 display-4 text-primary mb-3"></i>
+                    <h5>Sales by Date Range</h5>
+                    <p class="text-muted">View detailed sales report with custom date filtering</p>
+                    <a asp-action="Sales" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-text"></i> Sales Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-graph-up display-4 text-success mb-3"></i>
+                    <h5>Financial Analysis</h5>
+                    <p class="text-muted">Profitability breakdown by sport and detailed metrics</p>
+                    <a asp-action="Financial" class="btn btn-success">
+                        <i class="bi bi-graph-up"></i> Financial Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-box display-4 text-info mb-3"></i>
+                    <h5>View Inventory</h5>
+                    <p class="text-muted">Browse and manage all cards in your inventory</p>
+                    <a asp-controller="Inventory" asp-action="Index" class="btn btn-info">
+                        <i class="bi bi-box"></i> Inventory
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,20 +6,21 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using System.Net.Http;
-using CardLister.Data;
-using CardLister.Services;
-using CardLister.ViewModels;
-using CardLister.Views;
+using CardLister.Core.Data;
+using CardLister.Core.Services;
+using CardLister.Desktop.ViewModels;
+using CardLister.Desktop.Views;
+using CardLister.Desktop.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
-namespace CardLister
+namespace CardLister.Desktop
 {
     public partial class App : Application
     {
-        public static IServiceProvider Services { get; private set; } = null!;
+        private IServiceProvider? _services;
 
         public override void Initialize()
         {
@@ -105,12 +106,15 @@ namespace CardLister
                 services.AddTransient<ChecklistManagerViewModel>();
                 services.AddTransient<EditCardViewModel>();
 
-                Services = services.BuildServiceProvider();
+                // Navigation Service (must be after MainWindowViewModel)
+                services.AddSingleton<INavigationService, AvaloniaNavigationService>();
+
+                _services = services.BuildServiceProvider();
 
                 // Ensure database is created and seeded
                 try
                 {
-                    using var scope = Services.CreateScope();
+                    using var scope = _services.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<CardListerDbContext>();
                     Log.Information("Initializing database at {DbPath}", CardListerDbContext.GetDbPath());
                     db.Database.EnsureCreated();
@@ -131,14 +135,14 @@ namespace CardLister
 
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = Services.GetRequiredService<MainWindowViewModel>()
+                    DataContext = _services.GetRequiredService<MainWindowViewModel>()
                 };
 
                 desktop.ShutdownRequested += (_, _) =>
                 {
                     Log.Information("CardLister shutting down");
                     Log.CloseAndFlush();
-                    if (Services is IDisposable disposable)
+                    if (_services is IDisposable disposable)
                         disposable.Dispose();
                 };
             }

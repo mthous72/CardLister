@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace CardLister.Converters
+namespace CardLister.Desktop.Converters
 {
     public class CurrencyFormatConverter : IValueConverter
     {

@@ -1,0 +1,107 @@
+@model CardLister.Web.Models.PricingListViewModel
+@{
+    ViewData["Title"] = "Pricing";
+}
+
+<div class="container-fluid mt-4">
+    <h1 class="display-5 mb-4"><i class="bi bi-currency-dollar"></i> Card Pricing</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Cards.Any())
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5>Cards Needing Pricing (@Model.Cards.Count)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Sport</th>
+                                <th>Year</th>
+                                <th>Brand</th>
+                                <th>Set</th>
+                                <th>Card #</th>
+                                <th>Current Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in Model.Cards)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@card.PlayerName</strong>
+                                        @if (card.IsRookie)
+                                        {
+                                            <span class="badge bg-warning text-dark">RC</span>
+                                        }
+                                        @if (card.IsAuto)
+                                        {
+                                            <span class="badge bg-info">Auto</span>
+                                        }
+                                        @if (card.IsGraded)
+                                        {
+                                            <span class="badge bg-success">@card.GradeCompany @card.GradeValue</span>
+                                        }
+                                    </td>
+                                    <td>@card.Sport</td>
+                                    <td>@(card.Year?.ToString() ?? "-")</td>
+                                    <td>@(card.Brand ?? "-")</td>
+                                    <td>@(card.SetName ?? "-")</td>
+                                    <td>@(card.CardNumber ?? "-")</td>
+                                    <td>
+                                        @if (card.ListingPrice.HasValue)
+                                        {
+                                            <span class="text-success fw-bold">$@card.ListingPrice.Value.ToString("N2")</span>
+                                        }
+                                        else if (card.EstimatedValue.HasValue)
+                                        {
+                                            <span class="text-muted">Est: $@card.EstimatedValue.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not priced</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Research" asp-route-id="@card.Id" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-search"></i> Research Price
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success">
+            <h4><i class="bi bi-check-circle"></i> All Cards Priced!</h4>
+            <p>You don't have any cards that need pricing. Great job!</p>
+            <a asp-controller="Inventory" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-list-ul"></i> View Inventory
+            </a>
+        </div>
+    }
+</div>

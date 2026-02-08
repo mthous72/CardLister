@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CardLister.Core.Models;
 
-namespace CardLister.Models
+namespace CardLister.Desktop.Models
 {
     public partial class SelectableCard : ObservableObject
     {

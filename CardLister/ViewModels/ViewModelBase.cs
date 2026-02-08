@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public abstract class ViewModelBase : ObservableObject
     {

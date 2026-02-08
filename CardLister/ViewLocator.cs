@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using CardLister.ViewModels;
+using CardLister.Desktop.ViewModels;
 
-namespace CardLister
+namespace CardLister.Desktop
 {
     /// <summary>
     /// Given a view model, returns the corresponding view if possible.

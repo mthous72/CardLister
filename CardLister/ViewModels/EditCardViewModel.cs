@@ -1,17 +1,17 @@
 using System;
 using System.Threading.Tasks;
-using CardLister.Models;
-using CardLister.Services;
+using CardLister.Core.Models;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class EditCardViewModel : ViewModelBase
     {
         private readonly ICardRepository _cardRepository;
+        private readonly INavigationService _navigationService;
         private readonly ILogger<EditCardViewModel> _logger;
 
         private Card? _originalCard;
@@ -25,9 +25,13 @@ namespace CardLister.ViewModels
         [ObservableProperty] private string? _imagePathFront;
         [ObservableProperty] private string? _imagePathBack;
 
-        public EditCardViewModel(ICardRepository cardRepository, ILogger<EditCardViewModel> logger)
+        public EditCardViewModel(
+            ICardRepository cardRepository,
+            INavigationService navigationService,
+            ILogger<EditCardViewModel> logger)
         {
             _cardRepository = cardRepository;
+            _navigationService = navigationService;
             _logger = logger;
         }
 
@@ -112,8 +116,7 @@ namespace CardLister.ViewModels
                 _logger.LogInformation("Card {CardId} updated: {PlayerName}", _originalCard.Id, _originalCard.PlayerName);
 
                 // Navigate back to Inventory
-                if (App.Services.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)
-                    mainVm.NavigateToCommand.Execute("Inventory");
+                await _navigationService.NavigateToInventoryAsync();
             }
             catch (Exception ex)
             {
@@ -123,10 +126,9 @@ namespace CardLister.ViewModels
         }
 
         [RelayCommand]
-        private void Cancel()
+        private async Task Cancel()
         {
-            if (App.Services.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)
-                mainVm.NavigateToCommand.Execute("Inventory");
+            await _navigationService.NavigateToInventoryAsync();
         }
     }
 }

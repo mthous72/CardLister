@@ -1,0 +1,231 @@
+@model CardLister.Web.Models.CardDetailsViewModel
+@{
+    ViewData["Title"] = "Card Details";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">@Model.PlayerName</h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Card Images -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Card Images</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl1))
+                    {
+                        <img src="@Model.ImageUrl1" class="img-fluid mb-3" alt="Card Front">
+                    }
+                    else if (!string.IsNullOrEmpty(Model.ImagePathFront))
+                    {
+                        <div class="alert alert-info">
+                            <small>Local image: @System.IO.Path.GetFileName(Model.ImagePathFront)</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary text-center">
+                            <i class="bi bi-image" style="font-size: 3rem;"></i>
+                            <p class="mb-0">No front image</p>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl2))
+                    {
+                        <img src="@Model.ImageUrl2" class="img-fluid" alt="Card Back">
+                    }
+                    else if (!string.IsNullOrEmpty(Model.ImagePathBack))
+                    {
+                        <div class="alert alert-info">
+                            <small>Local image: @System.IO.Path.GetFileName(Model.ImagePathBack)</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Details -->
+        <div class="col-md-8">
+            <!-- Basic Info -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Sport:</dt>
+                                <dd class="col-sm-8">@Model.Sport</dd>
+
+                                <dt class="col-sm-4">Brand:</dt>
+                                <dd class="col-sm-8">@(Model.Brand ?? "-")</dd>
+
+                                <dt class="col-sm-4">Manufacturer:</dt>
+                                <dd class="col-sm-8">@(Model.Manufacturer ?? "-")</dd>
+
+                                <dt class="col-sm-4">Year:</dt>
+                                <dd class="col-sm-8">@(Model.Year?.ToString() ?? "-")</dd>
+
+                                <dt class="col-sm-4">Card Number:</dt>
+                                <dd class="col-sm-8">@(Model.CardNumber ?? "-")</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Team:</dt>
+                                <dd class="col-sm-8">@(Model.Team ?? "-")</dd>
+
+                                <dt class="col-sm-4">Set Name:</dt>
+                                <dd class="col-sm-8">@(Model.SetName ?? "-")</dd>
+
+                                <dt class="col-sm-4">Variation:</dt>
+                                <dd class="col-sm-8">@(Model.VariationType ?? "-")</dd>
+
+                                <dt class="col-sm-4">Parallel:</dt>
+                                <dd class="col-sm-8">@(Model.ParallelName ?? "-")</dd>
+
+                                <dt class="col-sm-4">Serial #:</dt>
+                                <dd class="col-sm-8">@(Model.SerialNumbered ?? "-")</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Features -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Card Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.IsRookie)
+                        {
+                            <span class="badge bg-warning text-dark">Rookie Card</span>
+                        }
+                        @if (Model.IsAuto)
+                        {
+                            <span class="badge bg-info">Autograph</span>
+                        }
+                        @if (Model.IsRelic)
+                        {
+                            <span class="badge bg-success">Relic/Memorabilia</span>
+                        }
+                        @if (Model.IsShortPrint)
+                        {
+                            <span class="badge bg-secondary">Short Print</span>
+                        }
+                        @if (Model.IsSSP)
+                        {
+                            <span class="badge bg-dark">Super Short Print</span>
+                        }
+                        @if (!Model.IsRookie && !Model.IsAuto && !Model.IsRelic && !Model.IsShortPrint && !Model.IsSSP)
+                        {
+                            <span class="text-muted">No special features</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grading Info (if graded) -->
+            @if (Model.IsGraded)
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Grading Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-3">Grading Company:</dt>
+                            <dd class="col-sm-9">@Model.GradeCompany</dd>
+
+                            <dt class="col-sm-3">Grade:</dt>
+                            <dd class="col-sm-9">@Model.GradeValue</dd>
+
+                            <dt class="col-sm-3">Cert Number:</dt>
+                            <dd class="col-sm-9">@(Model.CertNumber ?? "-")</dd>
+
+                            @if (!string.IsNullOrEmpty(Model.AutoGrade))
+                            {
+                                <dt class="col-sm-3">Auto Grade:</dt>
+                                <dd class="col-sm-9">@Model.AutoGrade</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+
+            <!-- Pricing Info -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Pricing & Status</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Status:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-primary">@Model.Status</span>
+                        </dd>
+
+                        <dt class="col-sm-3">Cost Basis:</dt>
+                        <dd class="col-sm-9">@(Model.CostBasis.HasValue ? "$" + Model.CostBasis.Value.ToString("N2") : "-")</dd>
+
+                        <dt class="col-sm-3">Estimated Value:</dt>
+                        <dd class="col-sm-9">@(Model.EstimatedValue.HasValue ? "$" + Model.EstimatedValue.Value.ToString("N2") : "-")</dd>
+
+                        <dt class="col-sm-3">Listing Price:</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.ListingPrice.HasValue)
+                            {
+                                <strong class="text-success">$@Model.ListingPrice.Value.ToString("N2")</strong>
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Quantity:</dt>
+                        <dd class="col-sm-9">@Model.Quantity</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Notes</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>@Model.Notes</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Timestamps -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <small class="text-muted">
+                        Created: @Model.CreatedAt.ToLocalTime().ToString("g") |
+                        Updated: @Model.UpdatedAt.ToLocalTime().ToString("g")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

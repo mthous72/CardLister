@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CardLister.Data;
-using CardLister.Models;
-using CardLister.Models.Enums;
-using CardLister.Services;
+using CardLister.Core.Data;
+using CardLister.Core.Models;
+using CardLister.Core.Models.Enums;
+using CardLister.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CardLister.ViewModels
+namespace CardLister.Desktop.ViewModels
 {
     public partial class SettingsViewModel : ViewModelBase
     {

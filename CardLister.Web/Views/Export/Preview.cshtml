@@ -1,0 +1,233 @@
+@model CardLister.Web.Models.ExportPreviewViewModel
+@{
+    ViewData["Title"] = "Export Preview";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Export Preview</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Export
+        </a>
+    </div>
+
+    <!-- Validation Errors -->
+    @if (Model.ValidationErrors.Any())
+    {
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle"></i> Validation Errors</h5>
+            <p>This card has the following issues that must be fixed before export:</p>
+            <ul class="mb-0">
+                @foreach (var error in Model.ValidationErrors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+            <div class="mt-3">
+                <a asp-controller="Inventory" asp-action="Edit" asp-route-id="@Model.Card.Id" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit Card to Fix Issues
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> This card is ready for export with no validation errors.
+        </div>
+    }
+
+    <div class="row">
+        <!-- Card Details -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Card Details</h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">@Model.Card.PlayerName</h4>
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Sport:</dt>
+                        <dd class="col-sm-8">@Model.Card.Sport</dd>
+
+                        @if (Model.Card.Year.HasValue)
+                        {
+                            <dt class="col-sm-4">Year:</dt>
+                            <dd class="col-sm-8">@Model.Card.Year</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Card.Brand))
+                        {
+                            <dt class="col-sm-4">Brand:</dt>
+                            <dd class="col-sm-8">@Model.Card.Brand</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Card.SetName))
+                        {
+                            <dt class="col-sm-4">Set:</dt>
+                            <dd class="col-sm-8">@Model.Card.SetName</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Card.CardNumber))
+                        {
+                            <dt class="col-sm-4">Card #:</dt>
+                            <dd class="col-sm-8">@Model.Card.CardNumber</dd>
+                        }
+
+                        @if (Model.Card.ListingPrice.HasValue)
+                        {
+                            <dt class="col-sm-4">Listing Price:</dt>
+                            <dd class="col-sm-8">
+                                <span class="text-success fw-bold fs-5">$@Model.Card.ListingPrice.Value.ToString("N2")</span>
+                            </dd>
+                        }
+                    </dl>
+
+                    <!-- Card Features -->
+                    @if (Model.Card.IsRookie || Model.Card.IsAuto || Model.Card.IsRelic || Model.Card.IsGraded)
+                    {
+                        <hr>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (Model.Card.IsRookie)
+                            {
+                                <span class="badge bg-warning text-dark">Rookie Card</span>
+                            }
+                            @if (Model.Card.IsAuto)
+                            {
+                                <span class="badge bg-info">Autograph</span>
+                            }
+                            @if (Model.Card.IsRelic)
+                            {
+                                <span class="badge bg-success">Relic/Memorabilia</span>
+                            }
+                            @if (Model.Card.IsGraded)
+                            {
+                                <span class="badge bg-primary">Graded - @Model.Card.GradeCompany @Model.Card.GradeValue</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Images -->
+            @if (!string.IsNullOrEmpty(Model.Card.ImageUrl1) || !string.IsNullOrEmpty(Model.Card.ImageUrl2))
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Images</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @if (!string.IsNullOrEmpty(Model.Card.ImageUrl1))
+                            {
+                                <div class="col-6">
+                                    <h6 class="text-center">Front</h6>
+                                    <img src="@Model.Card.ImageUrl1" alt="Front" class="img-fluid rounded" />
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Card.ImageUrl2))
+                            {
+                                <div class="col-6">
+                                    <h6 class="text-center">Back</h6>
+                                    <img src="@Model.Card.ImageUrl2" alt="Back" class="img-fluid rounded" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Export Data Preview -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Generated Export Title</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.GeneratedTitle</p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Generated Export Description</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.GeneratedDescription</p>
+                </div>
+            </div>
+
+            @if (Model.Card.IsGraded)
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Grading Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-6">Grading Company:</dt>
+                            <dd class="col-sm-6">@Model.Card.GradeCompany</dd>
+
+                            <dt class="col-sm-6">Grade:</dt>
+                            <dd class="col-sm-6">@Model.Card.GradeValue</dd>
+
+                            @if (!string.IsNullOrEmpty(Model.Card.CertNumber))
+                            {
+                                <dt class="col-sm-6">Cert Number:</dt>
+                                <dd class="col-sm-6">@Model.Card.CertNumber</dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Card.Quantity > 1)
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Quantity</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">
+                            <strong>@Model.Card.Quantity</strong> copies available
+                        </p>
+                    </div>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+                @if (!Model.ValidationErrors.Any())
+                {
+                    @if (Model.Card.Status != CardLister.Core.Models.Enums.CardStatus.Ready)
+                    {
+                        <form asp-action="MarkAsReady" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="cardId" value="@Model.Card.Id" />
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Mark as Ready for Export
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-check-circle"></i> This card is already marked as Ready for Export.
+                            Return to the <a asp-action="Index">Export page</a> to generate the CSV.
+                        </div>
+                    }
+                }
+
+                <a asp-controller="Inventory" asp-action="Details" asp-route-id="@Model.Card.Id" class="btn btn-outline-primary">
+                    <i class="bi bi-eye"></i> View Full Details
+                </a>
+
+                <a asp-controller="Inventory" asp-action="Edit" asp-route-id="@Model.Card.Id" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil"></i> Edit Card
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

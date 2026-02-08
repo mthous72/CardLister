@@ -4,58 +4,144 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CardLister is a C# / .NET 8 desktop application built with **Avalonia UI 11** and the **MVVM pattern** (CommunityToolkit.Mvvm). It helps sports card sellers scan card photos with AI vision (OpenRouter API), manage inventory in local SQLite, research pricing via Terapeak/eBay, and export Whatnot-compatible CSV files for bulk listing.
+CardLister is a C# / .NET 8 application suite for sports card sellers, consisting of:
 
-**Current State:** ~80-90% MVP Complete — Fully functional end-to-end workflow with AI scanning, database management, pricing, export, and financial tracking. Currently working on the `feature/bulk-scan` branch to add batch scanning capabilities.
+1. **CardLister.Desktop** - Avalonia UI 11 desktop app (Windows/Mac/Linux) with full feature set
+2. **CardLister.Web** - ASP.NET Core 8.0 MVC web app for mobile access (phone/tablet browsers)
+3. **CardLister.Core** - Shared business logic library (models, services, data access)
+
+Both apps share a single SQLite database with WAL mode for concurrent access, enabling seamless workflow between desktop power features and mobile convenience.
+
+**Core Features:** AI vision scanning (OpenRouter API), inventory management, pricing research (eBay/Terapeak), Whatnot CSV export, sales tracking, financial reports.
+
+**Current State:** Desktop MVP ~90% complete, Web MVP ~95% complete (feature/web-app-migration branch). Desktop on `feature/bulk-scan` for batch scanning.
 
 ## Build & Run Commands
 
+**Desktop App:**
 ```bash
-# Restore packages
+# Restore and build
 dotnet restore
-
-# Build
 dotnet build
 
-# Run the app
-dotnet run --project CardLister
+# Run desktop app
+dotnet run --project CardLister.Desktop
 
 # Build for release
 dotnet build -c Release
 
 # Publish self-contained Windows executable
-dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish CardLister.Desktop -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+```
 
+**Web App:**
+```bash
+# Run web app (development)
+cd CardLister.Web
+dotnet run
+
+# Run with specific URLs (for local network access)
+dotnet run --urls "http://0.0.0.0:5000"
+
+# Publish for deployment
+dotnet publish CardLister.Web -c Release -o ./publish
+```
+
+**Both:**
+```bash
 # Run tests (when test projects exist)
 dotnet test
+
+# Build entire solution
+dotnet build CardLister.sln
 ```
 
 ## Architecture
 
-**Current: Single-project structure** (works well, 3-project refactor is planned but optional):
+**Current: 3-Project Structure** (as of Phase 1 refactor):
 
 ```
-CardLister/          # Avalonia desktop app (net8.0)
-├── Views/           # 12 XAML views — no business logic in code-behind
-├── ViewModels/      # 14 ViewModels using [ObservableProperty] and [RelayCommand]
-├── Models/          # Domain entities (Card, PriceHistory, SetChecklist, enums)
-├── Services/        # 11 service interfaces + implementations
-├── Data/            # EF Core DbContext, repositories, migrations, seeders
-├── Converters/      # 8 value converters for XAML bindings
-├── Helpers/         # FuzzyMatcher, PriceCalculator, etc.
-├── Assets/          # Icons, images, seed data JSON
-├── Styles/          # AppStyles.axaml with consistent theming
-├── ViewLocator.cs   # Maps ViewModels to Views by naming convention
-├── App.axaml.cs     # DI container, logging, database initialization
-└── Program.cs       # Entry point
+CardLister.sln
+│
+├── CardLister.Core/          # Shared business logic (net8.0 class library)
+│   ├── Models/                # Domain entities (Card, PriceHistory, SetChecklist, enums)
+│   ├── Services/
+│   │   ├── Interfaces/        # All service contracts
+│   │   └── Implementations/   # UI-agnostic implementations (9 services)
+│   ├── Data/                  # EF Core DbContext, migrations, seeders
+│   └── Helpers/               # FuzzyMatcher, PriceCalculator, etc.
+│
+├── CardLister.Desktop/       # Avalonia UI app (net8.0 WinExe)
+│   ├── Views/                 # 12 XAML views
+│   ├── ViewModels/            # 14 ViewModels with [ObservableProperty]
+│   ├── Services/              # Platform-specific (3 services)
+│   │   ├── AvaloniaFileDialogService.cs
+│   │   ├── SystemBrowserService.cs
+│   │   ├── JsonSettingsService.cs
+│   │   └── AvaloniaNavigationService.cs
+│   ├── Converters/            # 8 XAML value converters
+│   ├── Styles/                # AppStyles.axaml
+│   ├── Assets/                # Icons, images, seed data JSON
+│   ├── ViewLocator.cs
+│   ├── App.axaml.cs
+│   └── Program.cs
+│
+└── CardLister.Web/           # ASP.NET Core MVC (net8.0 web app)
+    ├── Controllers/           # 6 controllers (Home, Inventory, Scan, Pricing, Export, Reports)
+    ├── Models/                # ViewModels/DTOs for Razor views (12 files)
+    ├── Views/
+    │   ├── Shared/            # _Layout.cshtml navigation
+    │   ├── Home/              # Dashboard
+    │   ├── Inventory/         # CRUD operations
+    │   ├── Scan/              # Mobile camera upload
+    │   ├── Pricing/           # Research and pricing
+    │   ├── Export/            # CSV generation
+    │   └── Reports/           # Analytics
+    ├── Services/              # Platform-specific (4 services)
+    │   ├── WebFileUploadService.cs
+    │   ├── JavaScriptBrowserService.cs
+    │   ├── MvcNavigationService.cs
+    │   └── JsonSettingsService.cs
+    ├── wwwroot/               # Static files, CSS, JS
+    └── Program.cs             # DI, middleware, WAL mode setup
 ```
 
-**Future 3-project layout** (planned refactor for better testability):
-- `CardLister.App` — Avalonia views, converters, styles, DI wiring
-- `CardLister.Core` — ViewModels, models, service interfaces (no UI references)
-- `CardLister.Infrastructure` — EF Core DbContext, API clients, service implementations
+### Dependency Flow
 
-### MVVM Data Flow
+```
+CardLister.Desktop ─┐
+                    ├─→ CardLister.Core ←─ Shared database (WAL mode)
+CardLister.Web ─────┘
+```
+
+Both Desktop and Web reference Core, but **never reference each other**.
+
+### Web App Architecture (ASP.NET Core MVC)
+
+**Data Flow:**
+```
+Browser → HTTP Request → Controller → Core Services → Database/APIs → View (Razor) → HTTP Response
+```
+
+**Key Patterns:**
+- **Controllers** - Handle HTTP requests, call Core services, return views
+- **ViewModels (DTOs)** - Simple data transfer objects for Razor views (no ObservableObject)
+- **Views (Razor)** - Server-rendered HTML with Bootstrap 5, client-side JavaScript for interactivity
+- **Shared Database** - SQLite with WAL mode enables concurrent Desktop + Web access without locking
+- **Platform Services** - Web-specific implementations (file upload via IFormFile, browser navigation via response headers)
+
+**DI Service Lifetimes:**
+- **Singleton** - Stateless services (ISettingsService, IScannerService, IImageUploadService)
+- **Scoped** - Services that depend on DbContext (ICardRepository, IPricerService, IExportService)
+- **Transient** - Not used in web app
+
+**Mobile Optimization:**
+- Camera integration via `<input accept="image/*" capture="environment">`
+- Bootstrap 5 responsive design (mobile-first)
+- Touch-friendly UI elements
+- JavaScript real-time calculators (profit calculator in pricing)
+
+### Desktop MVVM Data Flow
 
 ```
 View (XAML) → data binding → ViewModel (C#) → DI-injected services → Data/APIs
@@ -118,7 +204,7 @@ The `ViewLocator` maps ViewModel types to View types by replacing `"ViewModel"` 
 - ✅ Settings persistence (JSON)
 - ✅ Logging (Serilog to file)
 
-**Technical Implementation:**
+**Technical Implementation (Desktop):**
 - ✅ 14 ViewModels with MVVM pattern
 - ✅ 12 Views with Avalonia UI
 - ✅ 11 services with interface-based DI
@@ -128,25 +214,41 @@ The `ViewLocator` maps ViewModel types to View types by replacing `"ViewModel"` 
 - ✅ Fuzzy matching for verification (0.85/0.7 thresholds)
 - ✅ Rate limiting for free-tier AI models
 
+**Web Application (feature/web-app-migration branch):**
+- ✅ 3-project architecture (Core, Desktop, Web)
+- ✅ ASP.NET Core 8.0 MVC with Bootstrap 5
+- ✅ 6 controllers (Home, Inventory, Scan, Pricing, Export, Reports)
+- ✅ 13 Razor views with responsive design
+- ✅ Mobile camera integration for card scanning
+- ✅ Shared SQLite database with WAL mode (concurrent access)
+- ✅ Platform-specific service implementations
+- ✅ Real-time JavaScript calculators (profit calculator)
+- ✅ Full CRUD inventory management
+- ✅ CSV export for Whatnot
+- ✅ Sales and financial analytics
+
 ### 🚧 Current Work
 
+- 🚧 **Web App Testing** (feature/web-app-migration branch) — Phase 3 polish, mobile testing, documentation
 - 🚧 **Bulk Scan feature** (feature/bulk-scan branch) — Multi-card batch scanning with front/back pairing
 
 ### 📋 Future Roadmap
 
 **High Priority:**
-- ⏳ 3-project architecture refactor (App/Core/Infrastructure split)
+- ⏳ Web app authentication (multi-user support)
 - ⏳ Unit and integration tests
-- ⏳ Automated price scraping (replace manual browser lookup)
+- ⏳ Progressive Web App (PWA) - install web app on phone home screen
+- ⏳ Real-time sync between Desktop and Web (SignalR)
 
 **Medium Priority:**
-- ⏳ Cloud sync / backup
+- ⏳ Bulk scan from web interface
 - ⏳ Additional export formats (eBay, COMC)
 - ⏳ Performance optimizations for large inventories (1000+ cards)
-- ⏳ Dark theme support
+- ⏳ Dark theme support (Desktop and Web)
+- ⏳ Cloud sync / backup
 
 **Low Priority:**
-- ⏳ Mobile companion app
+- ⏳ Automated price scraping (replace manual browser lookup)
 - ⏳ Barcode scanning
 - ⏳ Price alerts/notifications
 
@@ -171,6 +273,15 @@ Comprehensive specs are in `Docs/`. Most are now implemented, use as reference f
 | `14-VARIATION-VERIFICATION.md` | ✅ Implemented | Checklist-based verification system |
 | `16-CHECKLIST-DATA-SPEC.md` | ✅ Implemented | Checklist data structure and seeding |
 | `17-FUTURE-ROADMAP.md` | 🆕 New | Future feature planning and priorities |
+| `18-PHASE1-COMPLETION-SUMMARY.md` | ✅ Complete | Core library extraction and refactor summary |
+| `19-TESTING-CHECKLIST-PHASE1.md` | ✅ Complete | Comprehensive testing checklist for Phase 1 |
+| `20-PHASE2-COMPLETION-SUMMARY.md` | ✅ Complete | Web app foundation and feature implementation |
+| `21-PHASE3-TESTING-PLAN.md` | 📝 In Progress | Functional testing, mobile, performance, security |
+| `22-PHASE3-PROGRESS-SUMMARY.md` | 📝 In Progress | Current status and progress tracking |
+| `23-FUNCTIONAL-TEST-RESULTS.md` | ✅ Complete | All page load tests passed (8/8) |
+| `WEB-USER-GUIDE.md` | 📖 Reference | Web app user guide for mobile access |
+| `DEPLOYMENT-GUIDE.md` | 📖 Reference | Web app deployment and network setup |
+| `USER-GUIDE.md` | 📖 Reference | Desktop app user guide with screenshots |
 
 ## Git Branching Workflow
 

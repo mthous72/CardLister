@@ -1,9 +1,9 @@
 using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
-using CardLister.Models.Enums;
+using CardLister.Core.Models.Enums;
 
-namespace CardLister.Converters
+namespace CardLister.Desktop.Converters
 {
     public class StatusToBadgeConverter : IValueConverter
     {

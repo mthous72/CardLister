@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
-namespace CardLister.Converters
+namespace CardLister.Desktop.Converters
 {
     public class PriceAgeToColorConverter : IValueConverter
     {

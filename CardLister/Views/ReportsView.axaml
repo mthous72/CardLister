@@ -12,6 +12,25 @@
 
             <TextBlock Text="Financial Reports" FontSize="24" FontWeight="Bold"/>
 
+            <!-- Legal Notice -->
+            <Border BorderBrush="Orange" BorderThickness="2"
+                    CornerRadius="8" Padding="16" Background="#FFF9E6">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="⚠️ IMPORTANT LEGAL NOTICE" FontSize="16" FontWeight="Bold" Foreground="OrangeRed"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="#333">
+                        <Run FontWeight="Bold">NOT TAX OR FINANCIAL ADVICE.</Run>
+                        These reports are for informational purposes only and do not constitute professional tax, financial, or legal advice.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="#333">
+                        <Run FontWeight="Bold">NO WARRANTY.</Run>
+                        CardLister makes no guarantees about the accuracy of calculations, profit/loss figures, or tax reporting data. All financial data should be independently verified.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#555">
+                        <Run FontWeight="SemiBold">Consult a tax professional or CPA</Run> for tax filing and financial advice. Users are solely responsible for maintaining accurate records and complying with all applicable laws and regulations.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
             <!-- Date Range -->
             <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
                     CornerRadius="8" Padding="16">

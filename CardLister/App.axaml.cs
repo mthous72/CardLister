@@ -92,6 +92,7 @@ namespace CardLister.Desktop
                 services.AddSingleton<IChecklistLearningService, ChecklistLearningService>();
                 services.AddSingleton<ISoldPriceService, Point130SoldPriceService>();
                 services.AddSingleton<IBulkScanErrorLogger, BulkScanErrorLogger>();
+                services.AddSingleton<ISyncService, TailscaleSyncService>();
 
                 // ViewModels
                 services.AddSingleton<MainWindowViewModel>();

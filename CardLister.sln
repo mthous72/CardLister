@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardLister.Core", "CardList
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardLister.Web", "CardLister.Web\CardLister.Web.csproj", "{151BC616-BB00-44A0-B82F-76018A170AB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardLister.Api", "CardLister.Api\CardLister.Api.csproj", "{EA891751-F0B9-46A1-BE0F-0632969A4D8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{151BC616-BB00-44A0-B82F-76018A170AB3}.Release|x64.Build.0 = Release|Any CPU
 		{151BC616-BB00-44A0-B82F-76018A170AB3}.Release|x86.ActiveCfg = Release|Any CPU
 		{151BC616-BB00-44A0-B82F-76018A170AB3}.Release|x86.Build.0 = Release|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Debug|x86.Build.0 = Debug|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Release|x64.Build.0 = Release|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Release|x86.ActiveCfg = Release|Any CPU
+		{EA891751-F0B9-46A1-BE0F-0632969A4D8B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,6 @@
+@CardLister.Api_HostAddress = http://localhost:5077
+
+GET {{CardLister.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

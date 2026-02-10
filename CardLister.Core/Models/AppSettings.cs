@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CardLister.Core.Models.Enums;
 using CardLister.Core.Services.ApiModels;
@@ -46,5 +47,12 @@ namespace CardLister.Core.Models
         // For free models (:free suffix), use 1 to avoid rate limits with the 4-second delay
         // For paid models (with credits), use 3-4 for optimal performance
         public int MaxConcurrentScans { get; set; } = 1;
+
+        // Tailscale Sync Settings
+        public bool EnableSync { get; set; } = false;
+        public string? SyncServerUrl { get; set; }  // e.g., "http://100.64.1.5:5000"
+        public DateTime? LastSyncTime { get; set; }
+        public bool AutoSyncOnStartup { get; set; } = true;
+        public bool AutoSyncOnExit { get; set; } = true;
     }
 }

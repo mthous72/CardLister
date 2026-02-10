@@ -3,8 +3,8 @@
 A dual-platform application for sports card sellers that uses AI vision to scan card images, manage inventory, research pricing, and export Whatnot-compatible CSV files for bulk listing.
 
 **Two ways to use CardLister:**
-- **Desktop App** - Full-featured Windows/macOS application built with Avalonia UI
-- **Web App** - Mobile-friendly web interface for on-the-go scanning and inventory management (NEW in v2.0!)
+- **Desktop App** - Full-featured Windows/macOS application built with Avalonia UI (inventory, export, reports, settings)
+- **Web App** - Mobile-optimized interface for on-the-go card scanning and price research only
 
 Built with **C# / .NET 8**, using **Avalonia UI 11** for desktop and **ASP.NET Core MVC** for web.
 
@@ -24,25 +24,25 @@ For power users who want the full desktop experience with bulk scanning and adva
 | macOS Intel | `CardLister-osx-x64.zip` -- extract all files to same folder, run `./CardLister` from terminal |
 | macOS Apple Silicon (M1/M2/M3/M4) | `CardLister-osx-arm64.zip` -- extract all files to same folder, run `./CardLister` from terminal |
 
-### Web Application (NEW in v2.0!)
+### Web Application
 
-For mobile access - scan cards with your phone's camera, manage inventory on-the-go:
+For mobile access - scan cards with your phone's camera and quick price research:
 
 | Platform | File | Usage |
 |----------|------|-------|
-| Windows (x64) | `CardLister-Web-Windows-v2.0.4.zip` | Extract and double-click `StartWeb.bat` |
-| macOS Intel | `CardLister-Web-macOS-Intel-v2.0.4.zip` | Extract and run `./start-web.sh` |
-| macOS Apple Silicon | `CardLister-Web-macOS-ARM-v2.0.4.zip` | Extract and run `./start-web.sh` |
-| Linux (x64) | `CardLister-Web-Linux-v2.0.4.tar.gz` | Extract and run `./start-web.sh` |
+| Windows (x64) | `CardLister-Web-v2.1.0.zip` | Extract and double-click `StartWeb.bat` |
+| macOS Intel | `CardLister-Web-macOS-Intel-v2.1.0.zip` | Extract and run `./start-web.sh` |
+| macOS Apple Silicon | `CardLister-Web-macOS-ARM-v2.1.0.zip` | Extract and run `./start-web.sh` |
+| Linux (x64) | `CardLister-Web-Linux-v2.1.0.tar.gz` | Extract and run `./start-web.sh` |
 
 **Web App Quick Start:**
 1. Download the package for your computer's OS (not your phone!)
 2. Extract and run the launcher script
 3. Server starts at `http://localhost:5000` (browser opens automatically)
 4. On your phone: Connect to same Wi-Fi → Open browser → Go to `http://YOUR-COMPUTER-IP:5000`
-5. Use your phone's camera to scan cards, manage inventory, research prices!
+5. Use your phone's camera to scan cards and research prices on-the-go!
 
-**Shared Database:** Desktop and Web apps share the same SQLite database, so your inventory stays in sync.
+**Shared Database:** Desktop and Web apps share the same SQLite database, so scanned cards are immediately available in the desktop app for full inventory management.
 
 ## What's Working
 
@@ -71,26 +71,24 @@ These features are implemented and functional today:
 - **Setup Wizard** -- First-run walkthrough for entering API keys and setting preferences.
 - **Local-First Data** -- All data is stored on your machine in SQLite. API keys are stored in your local app data folder, never in the repo.
 
-### Web Application Features (NEW in v2.0!)
+### Web Application Features (v2.1.0)
 
-Mobile-optimized web interface for on-the-go card management:
+Mobile-optimized web interface focused on core on-the-go features:
 
 - **Mobile Camera Scanning** -- Use your phone's camera to scan cards directly from the web browser. Touch-optimized upload interface with instant camera access.
 - **Single Card Scanning** -- Scan one card at a time with AI vision (front + optional back photo). Same AI models and verification as desktop app.
-- **Inventory Management** -- Browse, search, filter, edit, and delete cards from any device. Responsive design optimized for phone and tablet screens.
 - **Pricing Research** -- Quick access to eBay and Terapeak pricing tools. Real-time profit calculator shows fees, revenue, and margin as you type.
-- **CSV Export** -- Generate and download Whatnot-compatible CSV files from your phone.
-- **Reports & Analytics** -- View sales reports, financial metrics, and inventory statistics from any device.
-- **Shared Database** -- Uses the same SQLite database as the desktop app with Write-Ahead Logging (WAL) for concurrent access. Changes in desktop immediately visible in web (and vice versa).
+- **Shared Database** -- Uses the same SQLite database as the desktop app with Write-Ahead Logging (WAL) for concurrent access. Cards scanned on mobile immediately appear in desktop app for full management.
 - **No Installation on Mobile** -- Just open your phone's browser and navigate to your computer's IP address. No app store, no downloads on your phone!
-- **Network Access** -- Run the server on your computer, access from any device on your local Wi-Fi network. Perfect for scanning at card shows or quick inventory checks away from your desk.
+- **Network Access** -- Run the server on your computer, access from any device on your local Wi-Fi network. Perfect for scanning at card shows or quick price checks on-the-go.
+
+**Simplified Architecture (v2.1.0):** The web app focuses exclusively on **scanning and pricing** to provide the best mobile experience. For full inventory management, CSV export, reports, and settings, use the desktop application.
 
 **Use Cases:**
 - Scan cards at card shows using your phone's camera
 - Quick price checks while shopping for cards
-- Update inventory from couch/bed without opening laptop
-- Show your inventory to potential buyers on your phone
-- Access full reports and analytics from tablet
+- Research comps from your phone while browsing eBay
+- Scan cards away from your desk, manage them later on desktop
 
 ## Known Limitations
 
@@ -112,9 +110,10 @@ Here's what's rough or missing in the desktop application:
 
 Limitations specific to the web application:
 
+- **Limited Feature Set (v2.1.0)** -- Web app provides **scanning and pricing only**. For inventory management, CSV export, reports, and settings, use the desktop application. This simplification provides a better mobile experience focused on on-the-go workflows.
 - **No Bulk Scanning** -- Web app only supports single-card scanning. Use desktop app for batch scanning (10+ cards).
 - **No Settings Configuration** -- API keys and preferences must be configured in the desktop app. Web app reads from the shared `settings.json` file.
-- **No Authentication** -- Web app has no login system in v2.0. Only use on trusted Wi-Fi networks (home/office). Anyone on your network can access it.
+- **No Authentication** -- Web app has no login system. Only use on trusted Wi-Fi networks (home/office). Anyone on your network can access it.
 - **HTTP Only** -- No HTTPS support yet. Data is not encrypted in transit on your local network.
 - **Local Network Only** -- Designed for local Wi-Fi access. Not suitable for internet deployment without authentication and HTTPS.
 - **Manual IP Entry** -- You need to find your computer's IP address and type it on your phone. No auto-discovery yet.
@@ -144,15 +143,14 @@ Planned improvements, roughly in priority order:
 
 Future enhancements for the web application:
 
+- [ ] **Progressive Web App (PWA)** -- Install web app to phone home screen like a native app, offline support
 - [ ] **Authentication** -- Add login system for multi-user support and secure access
 - [ ] **HTTPS Support** -- SSL/TLS certificates for encrypted communication
-- [ ] **Progressive Web App (PWA)** -- Install web app to phone home screen like a native app, offline support
 - [ ] **Auto-Discovery** -- Automatic detection of server on local network (no manual IP entry)
-- [ ] **Bulk Scanning** -- Upload multiple photos for batch scanning from web interface
-- [ ] **Settings Configuration** -- Configure API keys and preferences from web interface
-- [ ] **Real-Time Sync** -- Live updates using SignalR when changes are made in desktop app
 - [ ] **Dark Mode** -- Toggle between light and dark themes
-- [ ] **Cloud Deployment** -- Optional cloud hosting for access from anywhere (with authentication)
+- [ ] **Real-Time Sync** -- Live updates using SignalR when changes are made in desktop app
+
+**Note:** Inventory management, export, reports, and settings will remain desktop-only to maintain a focused mobile experience.
 
 ## How It Works
 

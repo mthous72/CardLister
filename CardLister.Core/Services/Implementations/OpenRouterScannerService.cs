@@ -18,25 +18,28 @@ namespace CardLister.Core.Services
     {
         private const string ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
-        // Free vision models currently available on OpenRouter
-        // NOTE: Free model availability changes frequently. Check https://openrouter.ai/models?q=free for current list.
+        // Free vision models currently available on OpenRouter (verified Feb 2025)
+        // All support vision-language input with text output
         public static readonly string[] FreeVisionModels = new[]
         {
-            "meta-llama/llama-3.2-11b-vision-instruct:free",
-            "meta-llama/llama-3.2-90b-vision-instruct:free",
-            "nvidia/nemotron-nano-12b-v2-vl:free",
-            "qwen/qwen2.5-vl-72b-instruct:free",
-            "qwen/qwen2.5-vl-32b-instruct:free"
+            "google/gemma-3-27b-it:free",              // 27B, best free model, 131K context
+            "mistralai/mistral-small-3.1-24b-instruct:free",  // 24B, strong multimodal
+            "google/gemma-3-12b-it:free",              // 12B, good balance
+            "nvidia/nemotron-nano-12b-v2-vl:free",     // 12B, optimized for video/documents
+            "google/gemma-3-4b-it:free"                // 4B, fastest but less capable
         };
 
         // Premium vision models (paid, higher quality and more reliable)
         public static readonly string[] PaidVisionModels = new[]
         {
-            "anthropic/claude-3.5-sonnet",
-            "anthropic/claude-3-opus",
-            "openai/gpt-4o",
-            "openai/gpt-4o-mini",
-            "google/gemini-2.0-flash-001"
+            "anthropic/claude-3.5-sonnet",                    // Premium, excellent vision
+            "anthropic/claude-3-opus",                        // Best but expensive
+            "openai/gpt-4o",                                  // Very good vision
+            "openai/gpt-4o-mini",                             // Cheaper GPT-4o variant
+            "google/gemini-2.0-flash-lite-001",               // Gemini lite, good value
+            "meta-llama/llama-3.2-11b-vision-instruct",       // $0.049/M, good quality
+            "qwen/qwen2.5-vl-32b-instruct",                   // Qwen vision model
+            "google/gemma-3-27b-it"                           // Paid Gemma for reliability
         };
 
         // All vision models (free + paid)

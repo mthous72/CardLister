@@ -7,7 +7,7 @@ namespace CardLister.Web.Models
     /// </summary>
     public class ScanUploadViewModel
     {
-        public string SelectedModel { get; set; } = "meta-llama/llama-3.2-11b-vision-instruct:free";
+        public string SelectedModel { get; set; } = "google/gemma-3-27b-it:free";
 
         // Use centralized model list from OpenRouterScannerService
         public List<string> AvailableModels { get; set; } = OpenRouterScannerService.AllVisionModels.ToList();

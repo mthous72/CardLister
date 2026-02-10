@@ -20,6 +20,7 @@ namespace CardLister.Desktop.ViewModels
         private readonly IFileDialogService _fileDialogService;
         private readonly ISettingsService _settingsService;
         private readonly IVariationVerifier _variationVerifier;
+        private readonly IBulkScanErrorLogger _errorLogger;
         private readonly ILogger<BulkScanViewModel> _logger;
 
         private CancellationTokenSource? _scanCts;
@@ -68,6 +69,7 @@ namespace CardLister.Desktop.ViewModels
             IFileDialogService fileDialogService,
             ISettingsService settingsService,
             IVariationVerifier variationVerifier,
+            IBulkScanErrorLogger errorLogger,
             ILogger<BulkScanViewModel> logger)
         {
             _scannerService = scannerService;
@@ -75,6 +77,7 @@ namespace CardLister.Desktop.ViewModels
             _fileDialogService = fileDialogService;
             _settingsService = settingsService;
             _variationVerifier = variationVerifier;
+            _errorLogger = errorLogger;
             _logger = logger;
 
             // Initialize from settings
@@ -152,6 +155,9 @@ namespace CardLister.Desktop.ViewModels
             _logger.LogInformation("Starting bulk scan of {Count} cards with max concurrency {Concurrency}",
                 pending.Count, maxConcurrency);
 
+            // Start error tracking session
+            _errorLogger.StartSession(pending.Count, SelectedModel);
+
             // Create semaphore to limit concurrent scans (Moss Machine pattern)
             using var semaphore = new SemaphoreSlim(maxConcurrency, maxConcurrency);
 
@@ -167,6 +173,9 @@ namespace CardLister.Desktop.ViewModels
                 _logger.LogInformation("Bulk scan cancelled by user");
             }
 
+            // End error tracking session and generate summary
+            await _errorLogger.EndSessionAsync();
+
             IsScanning = false;
             _scanCts = null;
             StatusMessage = null;
@@ -175,7 +184,17 @@ namespace CardLister.Desktop.ViewModels
             var errors = Items.Count(i => i.Status == BulkScanStatus.Error);
 
             if (errors > 0)
-                ErrorMessage = $"Scanned {scanned} cards, {errors} failed";
+            {
+                var logPath = _errorLogger.GetCurrentLogFilePath();
+                if (!string.IsNullOrEmpty(logPath))
+                {
+                    ErrorMessage = $"Scanned {scanned} cards, {errors} failed. Error log saved to:\n{logPath}";
+                }
+                else
+                {
+                    ErrorMessage = $"Scanned {scanned} cards, {errors} failed";
+                }
+            }
             else
                 SuccessMessage = $"Scanned {scanned} cards successfully";
         }
@@ -250,12 +269,18 @@ namespace CardLister.Desktop.ViewModels
                         : $"Card {item.Index}";
                     item.Status = BulkScanStatus.Scanned;
                     _logger.LogInformation("Successfully scanned card {Index}: {PlayerName}", item.Index, item.DisplayName);
+
+                    // Log success for tracking
+                    _errorLogger.LogSuccess(item.Index, item.FrontImagePath, item.DisplayName);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to scan card {Index}: {Path}", item.Index, item.FrontImagePath);
                     item.Status = BulkScanStatus.Error;
                     item.ErrorMessage = ex.Message;
+
+                    // Log detailed error for tracking
+                    _errorLogger.LogError(item.Index, item.FrontImagePath, item.BackImagePath, ex, modelToUse);
                 }
 
                 // Thread-safe increment of progress

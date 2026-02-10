@@ -91,6 +91,7 @@ namespace CardLister.Desktop
                 services.AddTransient<IVariationVerifier, VariationVerifierService>();
                 services.AddSingleton<IChecklistLearningService, ChecklistLearningService>();
                 services.AddSingleton<ISoldPriceService, Point130SoldPriceService>();
+                services.AddSingleton<IBulkScanErrorLogger, BulkScanErrorLogger>();
 
                 // ViewModels
                 services.AddSingleton<MainWindowViewModel>();

@@ -359,10 +359,12 @@
                                    IsVisible="{Binding EditErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
                         <!-- Buttons -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                             <Button Grid.Column="0" Content="Save Changes" Command="{Binding SaveEditCommand}"
                                     Classes="accent" HorizontalAlignment="Stretch" Padding="12,8"/>
-                            <Button Grid.Column="1" Content="Close" Command="{Binding CloseEditPanelCommand}"
+                            <Button Grid.Column="1" Content="Full Edit..." Command="{Binding OpenFullEditCommand}"
+                                    Padding="12,8" ToolTip.Tip="Open comprehensive edit window with all fields"/>
+                            <Button Grid.Column="2" Content="Close" Command="{Binding CloseEditPanelCommand}"
                                     Padding="12,8"/>
                         </Grid>
                     </StackPanel>

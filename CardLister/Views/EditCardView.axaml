@@ -9,7 +9,7 @@
              x:DataType="vm:EditCardViewModel">
 
     <UserControl.Resources>
-        <conv:FilePathToBitmapConverter x:Key="FilePathToBitmapConverter"/>
+        <conv:FilePathToFullSizeBitmapConverter x:Key="FullSizeBitmapConverter"/>
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -36,17 +36,17 @@
                             <!-- No image placeholder -->
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                                         Spacing="12" MinHeight="200"
-                                        IsVisible="{Binding ImagePathFront, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                                        IsVisible="{Binding DisplayImageFront, Converter={x:Static StringConverters.IsNullOrEmpty}}">
                                 <TextBlock Text="No Front Image" FontSize="14" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Opacity="0.5" Margin="0,80,0,80"/>
                             </StackPanel>
 
                             <!-- Image preview -->
-                            <StackPanel IsVisible="{Binding ImagePathFront, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            <StackPanel IsVisible="{Binding DisplayImageFront, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                         Spacing="8" Margin="8">
                                 <TextBlock Text="Front" FontSize="12" FontWeight="SemiBold" Opacity="0.6"
                                            HorizontalAlignment="Center"/>
-                                <Image Source="{Binding ImagePathFront, Converter={StaticResource FilePathToBitmapConverter}}"
+                                <Image Source="{Binding DisplayImageFront, Converter={StaticResource FullSizeBitmapConverter}}"
                                        MaxHeight="300" Stretch="Uniform"
                                        HorizontalAlignment="Center"/>
                             </StackPanel>
@@ -61,14 +61,14 @@
                             <!-- No back image -->
                             <TextBlock Text="No Back Image" FontSize="12" Opacity="0.4"
                                        HorizontalAlignment="Center" Margin="0,20,0,20"
-                                       IsVisible="{Binding ImagePathBack, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                                       IsVisible="{Binding DisplayImageBack, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
 
                             <!-- Back image preview -->
-                            <StackPanel IsVisible="{Binding ImagePathBack, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            <StackPanel IsVisible="{Binding DisplayImageBack, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                         Spacing="8" Margin="8">
                                 <TextBlock Text="Back" FontSize="12" FontWeight="SemiBold" Opacity="0.6"
                                            HorizontalAlignment="Center"/>
-                                <Image Source="{Binding ImagePathBack, Converter={StaticResource FilePathToBitmapConverter}}"
+                                <Image Source="{Binding DisplayImageBack, Converter={StaticResource FullSizeBitmapConverter}}"
                                        MaxHeight="200" Stretch="Uniform"
                                        HorizontalAlignment="Center"/>
                             </StackPanel>

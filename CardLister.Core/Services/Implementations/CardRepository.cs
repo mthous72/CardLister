@@ -30,6 +30,16 @@ namespace CardLister.Core.Services
         public async Task UpdateCardAsync(Card card)
         {
             card.UpdatedAt = DateTime.UtcNow;
+
+            // If entity is already tracked, detach it first to avoid tracking conflicts
+            var existingEntry = _db.ChangeTracker.Entries<Card>()
+                .FirstOrDefault(e => e.Entity.Id == card.Id);
+
+            if (existingEntry != null)
+            {
+                existingEntry.State = EntityState.Detached;
+            }
+
             _db.Cards.Update(card);
             await _db.SaveChangesAsync();
         }

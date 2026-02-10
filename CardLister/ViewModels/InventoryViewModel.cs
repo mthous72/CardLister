@@ -173,6 +173,18 @@ namespace CardLister.Desktop.ViewModels
             EditErrorMessage = null;
         }
 
+        [RelayCommand]
+        private async Task OpenFullEditAsync()
+        {
+            if (SelectedCard == null) return;
+
+            // Close quick edit panel
+            IsEditPanelOpen = false;
+
+            // Navigate to full edit view
+            await _navigationService.NavigateToEditCardAsync(SelectedCard.Id);
+        }
+
         private void MergeCustomGradingCompanies(CardDetailViewModel vm)
         {
             var settings = _settingsService.Load();

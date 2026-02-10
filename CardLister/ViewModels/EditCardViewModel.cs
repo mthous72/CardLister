@@ -24,6 +24,12 @@ namespace CardLister.Desktop.ViewModels
         // Image previews from the original card
         [ObservableProperty] private string? _imagePathFront;
         [ObservableProperty] private string? _imagePathBack;
+        [ObservableProperty] private string? _imageUrl1;
+        [ObservableProperty] private string? _imageUrl2;
+
+        // Prefer ImgBB URLs (used for Whatnot) over local paths
+        public string? DisplayImageFront => !string.IsNullOrEmpty(ImageUrl1) ? ImageUrl1 : ImagePathFront;
+        public string? DisplayImageBack => !string.IsNullOrEmpty(ImageUrl2) ? ImageUrl2 : ImagePathBack;
 
         public EditCardViewModel(
             ICardRepository cardRepository,
@@ -52,6 +58,12 @@ namespace CardLister.Desktop.ViewModels
                 CardDetail = CardDetailViewModel.FromCard(_originalCard);
                 ImagePathFront = _originalCard.ImagePathFront;
                 ImagePathBack = _originalCard.ImagePathBack;
+                ImageUrl1 = _originalCard.ImageUrl1;
+                ImageUrl2 = _originalCard.ImageUrl2;
+
+                // Notify that display properties changed
+                OnPropertyChanged(nameof(DisplayImageFront));
+                OnPropertyChanged(nameof(DisplayImageBack));
             }
             catch (Exception ex)
             {

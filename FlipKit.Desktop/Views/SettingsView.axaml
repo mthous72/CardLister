@@ -342,6 +342,149 @@
                 </StackPanel>
             </Border>
 
+            <!-- Servers (FlipKit Hub) -->
+            <Border BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="1"
+                    CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Local Servers (FlipKit Hub)" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.7">
+                        Manage embedded Web and API servers for mobile access and remote connectivity.
+                    </TextBlock>
+
+                    <!-- Auto-start Configuration -->
+                    <TextBlock Text="Auto-start Configuration" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                    <CheckBox IsChecked="{Binding AutoStartWebServer}"
+                              Content="Start Web server automatically on launch"/>
+                    <CheckBox IsChecked="{Binding AutoStartApiServer}"
+                              Content="Start API server automatically on launch"/>
+                    <CheckBox IsChecked="{Binding AutoOpenBrowser}"
+                              Content="Open browser when Web server starts"/>
+                    <CheckBox IsChecked="{Binding MinimizeToTray}"
+                              Content="Minimize to system tray"/>
+
+                    <!-- Port Configuration -->
+                    <TextBlock Text="Port Configuration" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                    <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" Margin="0,4">
+                        <TextBlock Grid.Column="0" Text="Web Port:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <NumericUpDown Grid.Column="1" Value="{Binding WebServerPort}"
+                                       Minimum="5000" Maximum="9999" Increment="1"
+                                       Width="120" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="2" Text="API Port:" VerticalAlignment="Center" Margin="16,0,8,0"/>
+                        <NumericUpDown Grid.Column="3" Value="{Binding ApiServerPort}"
+                                       Minimum="5000" Maximum="9999" Increment="1"
+                                       Width="120" HorizontalAlignment="Left"/>
+                    </Grid>
+                    <TextBlock Text="Changes to ports take effect after restarting servers"
+                               FontSize="11" Opacity="0.6" Margin="0,-6,0,0"/>
+
+                    <!-- Server Controls -->
+                    <TextBlock Text="Server Status" FontWeight="SemiBold" Margin="0,12,0,0"/>
+
+                    <!-- Web Server -->
+                    <Border Background="{DynamicResource SystemChromeLowColor}"
+                            CornerRadius="6" Padding="12" Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Web Server:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding WebServerStatus}"
+                                           VerticalAlignment="Center" FontSize="12"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button Content="Start" Command="{Binding StartWebServerCommand}"
+                                        IsEnabled="{Binding !IsWebRunning}" Padding="12,6"/>
+                                <Button Content="Stop" Command="{Binding StopWebServerCommand}"
+                                        IsEnabled="{Binding IsWebRunning}" Padding="12,6"/>
+                                <Button Content="Open Browser" Command="{Binding OpenWebBrowserCommand}"
+                                        IsEnabled="{Binding IsWebRunning}" Padding="12,6"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- API Server -->
+                    <Border Background="{DynamicResource SystemChromeLowColor}"
+                            CornerRadius="6" Padding="12" Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="API Server:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ApiServerStatus}"
+                                           VerticalAlignment="Center" FontSize="12"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button Content="Start" Command="{Binding StartApiServerCommand}"
+                                        IsEnabled="{Binding !IsApiRunning}" Padding="12,6"/>
+                                <Button Content="Stop" Command="{Binding StopApiServerCommand}"
+                                        IsEnabled="{Binding IsApiRunning}" Padding="12,6"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Network Access -->
+                    <TextBlock Text="Mobile Access" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                    <Border Background="{DynamicResource SystemChromeLowColor}"
+                            CornerRadius="6" Padding="12" Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="{Binding LocalIpAddresses}"
+                                           TextWrapping="Wrap" FontSize="12"/>
+                                <TextBlock Text="Connect your phone to the same Wi-Fi network and scan the QR code or navigate to the URL above."
+                                           TextWrapping="Wrap" FontSize="11" Opacity="0.6" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="White" Padding="8"
+                                    CornerRadius="4" Margin="12,0,0,0"
+                                    IsVisible="{Binding QrCodeBitmap, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <Image Source="{Binding QrCodeBitmap}"
+                                       Width="150" Height="150"
+                                       Stretch="Uniform"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Server Logs (Expandable) -->
+                    <Expander Header="Server Logs" IsExpanded="False" Margin="0,12,0,0">
+                        <Border Background="{DynamicResource SystemChromeLowColor}"
+                                CornerRadius="6" Padding="12" Margin="0,8,0,0">
+                            <StackPanel Spacing="12">
+                                <!-- Web Logs -->
+                                <StackPanel>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="Web Server Logs" FontWeight="SemiBold"/>
+                                        <Button Grid.Column="1" Content="Clear" Command="{Binding ClearWebLogsCommand}"
+                                                Padding="8,4" FontSize="11"/>
+                                    </Grid>
+                                    <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                            CornerRadius="4" Padding="8" Margin="0,4,0,0" Height="150">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <TextBlock Text="{Binding WebServerLogs}"
+                                                       FontFamily="Consolas,Courier New" FontSize="10"
+                                                       TextWrapping="NoWrap"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- API Logs -->
+                                <StackPanel>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="API Server Logs" FontWeight="SemiBold"/>
+                                        <Button Grid.Column="1" Content="Clear" Command="{Binding ClearApiLogsCommand}"
+                                                Padding="8,4" FontSize="11"/>
+                                    </Grid>
+                                    <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                            CornerRadius="4" Padding="8" Margin="0,4,0,0" Height="150">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                      VerticalScrollBarVisibility="Auto">
+                                            <TextBlock Text="{Binding ApiServerLogs}"
+                                                       FontFamily="Consolas,Courier New" FontSize="10"
+                                                       TextWrapping="NoWrap"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Expander>
+                </StackPanel>
+            </Border>
+
             <!-- Save -->
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}"

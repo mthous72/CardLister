@@ -2,7 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using FlipKit.Core.Data;
 using FlipKit.Core.Helpers;
 using FlipKit.Core.Models;
@@ -12,14 +17,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using QRCoder;
 
 namespace FlipKit.Desktop.ViewModels
 {
-    public partial class SettingsViewModel : ViewModelBase
+    public partial class SettingsViewModel : ViewModelBase, IDisposable
     {
         private readonly ISettingsService _settingsService;
         private readonly IBrowserService _browserService;
         private readonly IServiceProvider _services;
+        private readonly IServerManagementService _serverManagement;
+        private Timer? _statusRefreshTimer;
 
         // API Keys
         [ObservableProperty] private string _openRouterApiKey = string.Empty;
@@ -81,15 +89,44 @@ namespace FlipKit.Desktop.ViewModels
         [ObservableProperty] private string _dataAccessMode = "Local Database (Direct access)";
         [ObservableProperty] private string _dataAccessModeColor = "Green";
 
-        public SettingsViewModel(ISettingsService settingsService, IBrowserService browserService, IServiceProvider services)
+        // Server Management (FlipKit Hub)
+        [ObservableProperty] private bool _autoStartWebServer = true;
+        [ObservableProperty] private bool _autoStartApiServer = true;
+        [ObservableProperty] private int _webServerPort = 5000;
+        [ObservableProperty] private int _apiServerPort = 5001;
+        [ObservableProperty] private bool _minimizeToTray = true;
+        [ObservableProperty] private bool _autoOpenBrowser = true;
+
+        [ObservableProperty] private bool _isWebRunning;
+        [ObservableProperty] private bool _isApiRunning;
+        [ObservableProperty] private int _actualWebPort;
+        [ObservableProperty] private int _actualApiPort;
+        [ObservableProperty] private string _webServerStatus = "Stopped";
+        [ObservableProperty] private string _apiServerStatus = "Stopped";
+        [ObservableProperty] private string _localIpAddresses = "No network connection";
+        [ObservableProperty] private string _webServerLogs = string.Empty;
+        [ObservableProperty] private string _apiServerLogs = string.Empty;
+        [ObservableProperty] private Bitmap? _qrCodeBitmap;
+
+        public SettingsViewModel(ISettingsService settingsService, IBrowserService browserService,
+            IServiceProvider services, IServerManagementService serverManagement)
         {
             _settingsService = settingsService;
             _browserService = browserService;
             _services = services;
+            _serverManagement = serverManagement;
 
             LoadSettings();
             LoadCardCountAsync();
             UpdateDataAccessMode();
+            UpdateServerStatus();
+            UpdateLocalIpAddresses();
+
+            // Refresh server status every 2 seconds
+            _statusRefreshTimer = new Timer(_ =>
+            {
+                UpdateServerStatus();
+            }, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
         }
 
         private void LoadSettings()
@@ -126,6 +163,14 @@ namespace FlipKit.Desktop.ViewModels
 
             // API Server URL
             SyncServerUrl = s.SyncServerUrl;
+
+            // Server Management (FlipKit Hub)
+            AutoStartWebServer = s.AutoStartWebServer;
+            AutoStartApiServer = s.AutoStartApiServer;
+            WebServerPort = s.WebServerPort;
+            ApiServerPort = s.ApiServerPort;
+            MinimizeToTray = s.MinimizeToTray;
+            AutoOpenBrowser = s.AutoOpenBrowser;
 
             OpenRouterStatus = string.IsNullOrWhiteSpace(OpenRouterApiKey) ? "Not configured" : "Configured (not tested)";
             ImgBBStatus = string.IsNullOrWhiteSpace(ImgBBApiKey) ? "Not configured" : "Configured (not tested)";
@@ -198,7 +243,13 @@ namespace FlipKit.Desktop.ViewModels
                 ActiveExportPlatform = ActiveExportPlatform,
                 TerapeakSearchTemplate = TerapeakSearchTemplate,
                 EbaySearchTemplate = EbaySearchTemplate,
-                SyncServerUrl = SyncServerUrl
+                SyncServerUrl = SyncServerUrl,
+                AutoStartWebServer = AutoStartWebServer,
+                AutoStartApiServer = AutoStartApiServer,
+                WebServerPort = WebServerPort,
+                ApiServerPort = ApiServerPort,
+                MinimizeToTray = MinimizeToTray,
+                AutoOpenBrowser = AutoOpenBrowser
             };
 
             _settingsService.Save(s);
@@ -364,6 +415,211 @@ namespace FlipKit.Desktop.ViewModels
 
             DataAccessMode = DataAccessModeDetector.GetModeDescription(mode);
             DataAccessModeColor = mode == Core.Helpers.DataAccessMode.Local ? "Green" : "Blue";
+        }
+
+        // Server Management Commands
+
+        [RelayCommand]
+        private async Task StartWebServerAsync()
+        {
+            WebServerStatus = "Starting...";
+            var result = await _serverManagement.StartWebServerAsync(WebServerPort);
+
+            if (result.Success)
+            {
+                ActualWebPort = result.ActualPort;
+                WebServerStatus = $"Running on port {result.ActualPort}";
+                UpdateLocalIpAddresses();
+
+                if (AutoOpenBrowser && result.ActualPort > 0)
+                {
+                    _browserService.OpenUrl($"http://localhost:{result.ActualPort}");
+                }
+            }
+            else
+            {
+                WebServerStatus = $"Failed: {result.ErrorMessage}";
+            }
+
+            UpdateServerStatus();
+        }
+
+        [RelayCommand]
+        private async Task StopWebServerAsync()
+        {
+            WebServerStatus = "Stopping...";
+            await _serverManagement.StopWebServerAsync();
+            WebServerStatus = "Stopped";
+            UpdateServerStatus();
+        }
+
+        [RelayCommand]
+        private async Task StartApiServerAsync()
+        {
+            ApiServerStatus = "Starting...";
+            var result = await _serverManagement.StartApiServerAsync(ApiServerPort);
+
+            if (result.Success)
+            {
+                ActualApiPort = result.ActualPort;
+                ApiServerStatus = $"Running on port {result.ActualPort}";
+            }
+            else
+            {
+                ApiServerStatus = $"Failed: {result.ErrorMessage}";
+            }
+
+            UpdateServerStatus();
+        }
+
+        [RelayCommand]
+        private async Task StopApiServerAsync()
+        {
+            ApiServerStatus = "Stopping...";
+            await _serverManagement.StopApiServerAsync();
+            ApiServerStatus = "Stopped";
+            UpdateServerStatus();
+        }
+
+        [RelayCommand]
+        private void OpenWebBrowser()
+        {
+            var port = IsWebRunning ? ActualWebPort : WebServerPort;
+            _browserService.OpenUrl($"http://localhost:{port}");
+        }
+
+        [RelayCommand]
+        private void RefreshServerLogs()
+        {
+            var webLogs = _serverManagement.GetWebServerLogs();
+            var apiLogs = _serverManagement.GetApiServerLogs();
+
+            WebServerLogs = string.Join(Environment.NewLine, webLogs);
+            ApiServerLogs = string.Join(Environment.NewLine, apiLogs);
+        }
+
+        [RelayCommand]
+        private void ClearWebLogs()
+        {
+            _serverManagement.ClearWebServerLogs();
+            WebServerLogs = string.Empty;
+        }
+
+        [RelayCommand]
+        private void ClearApiLogs()
+        {
+            _serverManagement.ClearApiServerLogs();
+            ApiServerLogs = string.Empty;
+        }
+
+        private void UpdateServerStatus()
+        {
+            var status = _serverManagement.GetServerStatus();
+
+            IsWebRunning = status.IsWebRunning;
+            IsApiRunning = status.IsApiRunning;
+
+            if (status.IsWebRunning)
+            {
+                ActualWebPort = status.WebPort;
+                WebServerStatus = $"Running on port {status.WebPort}";
+            }
+            else if (WebServerStatus != "Starting..." && WebServerStatus != "Stopping...")
+            {
+                WebServerStatus = "Stopped";
+            }
+
+            if (status.IsApiRunning)
+            {
+                ActualApiPort = status.ApiPort;
+                ApiServerStatus = $"Running on port {status.ApiPort}";
+            }
+            else if (ApiServerStatus != "Starting..." && ApiServerStatus != "Stopping...")
+            {
+                ApiServerStatus = "Stopped";
+            }
+
+            // Refresh logs if servers are running
+            if (IsWebRunning || IsApiRunning)
+            {
+                RefreshServerLogs();
+            }
+        }
+
+        private void UpdateLocalIpAddresses()
+        {
+            try
+            {
+                var localIPs = new List<string>();
+
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus == OperationalStatus.Up &&
+                        (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
+                         ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet))
+                    {
+                        foreach (var ip in ni.GetIPProperties().UnicastAddresses)
+                        {
+                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork &&
+                                !ip.Address.ToString().StartsWith("127."))
+                            {
+                                localIPs.Add(ip.Address.ToString());
+                            }
+                        }
+                    }
+                }
+
+                if (localIPs.Count > 0 && IsWebRunning)
+                {
+                    var primaryIp = localIPs.FirstOrDefault(ip => ip.StartsWith("192.168.")) ?? localIPs[0];
+                    var url = $"http://{primaryIp}:{ActualWebPort}";
+                    var ipList = string.Join(", ", localIPs.Select(ip => $"http://{ip}:{ActualWebPort}"));
+                    LocalIpAddresses = $"Access from phone: {ipList}";
+
+                    // Generate QR code for the primary URL
+                    GenerateQrCode(url);
+                }
+                else if (localIPs.Count > 0)
+                {
+                    LocalIpAddresses = $"Local IPs: {string.Join(", ", localIPs)} (Web server not running)";
+                    QrCodeBitmap = null;
+                }
+                else
+                {
+                    LocalIpAddresses = "No network connection";
+                    QrCodeBitmap = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                LocalIpAddresses = $"Error detecting network: {ex.Message}";
+                QrCodeBitmap = null;
+            }
+        }
+
+        private void GenerateQrCode(string url)
+        {
+            try
+            {
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
+                using var qrCode = new PngByteQRCode(qrCodeData);
+                var qrCodeImage = qrCode.GetGraphic(20); // 20 pixels per module
+
+                // Convert byte array to Avalonia Bitmap
+                using var stream = new MemoryStream(qrCodeImage);
+                QrCodeBitmap = new Bitmap(stream);
+            }
+            catch (Exception)
+            {
+                // Failed to generate QR code - silently fail and leave QR code as null
+                QrCodeBitmap = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            _statusRefreshTimer?.Dispose();
         }
     }
 }

@@ -129,4 +129,13 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Health check endpoint for server management
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    service = "FlipKit.Web",
+    version = "3.1.0",
+    timestamp = DateTime.UtcNow
+}));
+
 app.Run();

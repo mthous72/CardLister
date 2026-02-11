@@ -55,7 +55,7 @@ app.UseCors();
 app.MapGet("/", () => Results.Ok(new
 {
     Service = "FlipKit API",
-    Version = "1.0",
+    Version = "3.1.0",
     Status = "Running",
     Message = "API is healthy and ready to serve requests",
     Endpoints = new
@@ -70,6 +70,17 @@ app.MapGet("/", () => Results.Ok(new
     }
 }))
 .WithName("HealthCheck")
+.WithOpenApi();
+
+// Simple health check endpoint for server management
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    service = "FlipKit.Api",
+    version = "3.1.0",
+    timestamp = DateTime.UtcNow
+}))
+.WithName("HealthCheckSimple")
 .WithOpenApi();
 
 // ============================================================================

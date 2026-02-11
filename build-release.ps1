@@ -1,15 +1,19 @@
-# FlipKit Release Build Script
-# Builds Desktop, Web, and API packages for all platforms
+# FlipKit Hub Release Build Script
+# Builds unified Hub packages for Windows and Linux
+# Version: 3.1.0
 
 param(
-    [string]$Version = "3.0.0"
+    [string]$Version = "3.1.0"
 )
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "FlipKit v$Version Release Build" -ForegroundColor Cyan
+Write-Host "FlipKit Hub v$Version Release Build" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Building unified packages for Windows and Linux" -ForegroundColor Yellow
+Write-Host "(macOS excluded due to code signing requirements)" -ForegroundColor DarkGray
 Write-Host ""
 
 # Clean old releases
@@ -18,22 +22,33 @@ if (Test-Path ".\releases") {
     Remove-Item ".\releases" -Recurse -Force
 }
 New-Item -ItemType Directory -Path ".\releases" | Out-Null
+New-Item -ItemType Directory -Path ".\releases\temp" | Out-Null
 
 # ============================================================================
-# DESKTOP APP BUILDS
+# FLIPKIT HUB UNIFIED PACKAGES
 # ============================================================================
 
-Write-Host ""
-Write-Host "Building Desktop App..." -ForegroundColor Green
-
-$desktopTargets = @(
-    @{ Runtime = "win-x64"; Name = "Windows-x64" },
-    @{ Runtime = "osx-x64"; Name = "macOS-Intel" },
-    @{ Runtime = "osx-arm64"; Name = "macOS-ARM" }
+$hubTargets = @(
+    @{ Runtime = "win-x64"; Name = "Windows-x64"; Ext = "zip" },
+    @{ Runtime = "linux-x64"; Name = "Linux-x64"; Ext = "tar.gz" }
 )
 
-foreach ($target in $desktopTargets) {
-    Write-Host "  - Building $($target.Name)..." -ForegroundColor Yellow
+foreach ($target in $hubTargets) {
+    Write-Host ""
+    Write-Host "Building FlipKit Hub for $($target.Name)..." -ForegroundColor Green
+    Write-Host "============================================" -ForegroundColor Green
+
+    $hubDir = ".\releases\temp\FlipKit-Hub-$($target.Name)-v$Version"
+    $serversDir = "$hubDir\servers"
+
+    # Create folder structure
+    New-Item -ItemType Directory -Path $hubDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $serversDir -Force | Out-Null
+
+    # -------------------------------------------------------------------------
+    # 1. Build Desktop App (root folder)
+    # -------------------------------------------------------------------------
+    Write-Host "  [1/3] Building Desktop app..." -ForegroundColor Yellow
 
     dotnet publish FlipKit.Desktop `
         -c Release `
@@ -41,219 +56,200 @@ foreach ($target in $desktopTargets) {
         --self-contained true `
         -p:PublishSingleFile=true `
         -p:IncludeNativeLibrariesForSelfExtract=true `
-        -o ".\releases\temp\desktop-$($target.Runtime)"
+        -o "$hubDir"
 
     if ($LASTEXITCODE -ne 0) {
-        throw "Build failed for $($target.Name)"
+        throw "Desktop build failed for $($target.Name)"
     }
 
-    # Create zip
-    $zipName = "FlipKit-Desktop-$($target.Name)-v$Version.zip"
-    Compress-Archive `
-        -Path ".\releases\temp\desktop-$($target.Runtime)\*" `
-        -DestinationPath ".\releases\$zipName" `
-        -Force
+    Write-Host "    Desktop app built successfully" -ForegroundColor Green
 
-    Write-Host "    Created: $zipName" -ForegroundColor Green
-}
+    # -------------------------------------------------------------------------
+    # 2. Build Web Server (servers/ folder)
+    # -------------------------------------------------------------------------
+    Write-Host "  [2/3] Building Web server..." -ForegroundColor Yellow
 
-# ============================================================================
-# WEB APP BUILDS
-# ============================================================================
-
-Write-Host ""
-Write-Host "Building Web App..." -ForegroundColor Green
-
-$webTargets = @(
-    @{ Runtime = "win-x64"; Name = "Windows-x64"; Launcher = "StartWeb.bat" },
-    @{ Runtime = "osx-x64"; Name = "macOS-Intel"; Launcher = "start-web.sh" },
-    @{ Runtime = "osx-arm64"; Name = "macOS-ARM"; Launcher = "start-web.sh" },
-    @{ Runtime = "linux-x64"; Name = "Linux-x64"; Launcher = "start-web.sh" }
-)
-
-foreach ($target in $webTargets) {
-    Write-Host "  - Building $($target.Name)..." -ForegroundColor Yellow
-
+    $webTempDir = ".\releases\temp\web-$($target.Runtime)"
     dotnet publish FlipKit.Web `
         -c Release `
         -r $target.Runtime `
         --self-contained true `
-        -o ".\releases\temp\web-$($target.Runtime)"
+        -o "$webTempDir"
 
     if ($LASTEXITCODE -ne 0) {
-        throw "Build failed for Web $($target.Name)"
+        throw "Web build failed for $($target.Name)"
     }
 
-    # Create launcher script
-    $launcherPath = ".\releases\temp\web-$($target.Runtime)\$($target.Launcher)"
+    # Move Web server to servers/ folder
+    Move-Item "$webTempDir\*" "$serversDir\" -Force
+    Remove-Item $webTempDir -Recurse -Force
 
-    if ($target.Runtime -like "win-*") {
-        @"
-@echo off
-echo Starting FlipKit Web App...
-echo.
-echo Web app will open in your browser at http://localhost:5001
-echo.
-echo To access from your phone:
-echo 1. Make sure phone and computer are on same WiFi or Tailscale network
-echo 2. Find your computer's IP address
-echo 3. Open browser on phone and go to http://YOUR-IP:5001
-echo.
-start http://localhost:5001
-FlipKit.Web.exe --urls "http://0.0.0.0:5001"
-"@ | Out-File -FilePath $launcherPath -Encoding ASCII
-    } else {
-        @"
-#!/bin/bash
-echo "Starting FlipKit Web App..."
-echo ""
-echo "Web app will open in your browser at http://localhost:5001"
-echo ""
-echo "To access from your phone:"
-echo "1. Make sure phone and computer are on same WiFi or Tailscale network"
-echo "2. Find your computer's IP address"
-echo "3. Open browser on phone and go to http://YOUR-IP:5001"
-echo ""
+    Write-Host "    Web server built successfully" -ForegroundColor Green
 
-# Try to open browser
-if command -v open &> /dev/null; then
-    open http://localhost:5001
-elif command -v xdg-open &> /dev/null; then
-    xdg-open http://localhost:5001
-fi
+    # -------------------------------------------------------------------------
+    # 3. Build API Server (servers/ folder)
+    # -------------------------------------------------------------------------
+    Write-Host "  [3/3] Building API server..." -ForegroundColor Yellow
 
-# Run web app
-./FlipKit.Web --urls "http://0.0.0.0:5001"
-"@ | Out-File -FilePath $launcherPath -Encoding UTF8
-        # Make executable
-        if ($IsLinux -or $IsMacOS) {
-            chmod +x $launcherPath
-        }
-    }
-
-    # Create archive
-    $ext = if ($target.Runtime -like "linux-*") { "tar.gz" } else { "zip" }
-    $archiveName = "FlipKit-Web-$($target.Name)-v$Version.$ext"
-
-    if ($ext -eq "zip") {
-        Compress-Archive `
-            -Path ".\releases\temp\web-$($target.Runtime)\*" `
-            -DestinationPath ".\releases\$archiveName" `
-            -Force
-    } else {
-        tar -czf ".\releases\$archiveName" -C ".\releases\temp\web-$($target.Runtime)" .
-    }
-
-    Write-Host "    Created: $archiveName" -ForegroundColor Green
-}
-
-# ============================================================================
-# API SERVER BUILDS
-# ============================================================================
-
-Write-Host ""
-Write-Host "Building API Server..." -ForegroundColor Green
-
-$apiTargets = @(
-    @{ Runtime = "win-x64"; Name = "Windows-x64"; Launcher = "StartAPI.bat" },
-    @{ Runtime = "osx-x64"; Name = "macOS-Intel"; Launcher = "start-api.sh" },
-    @{ Runtime = "osx-arm64"; Name = "macOS-ARM"; Launcher = "start-api.sh" },
-    @{ Runtime = "linux-x64"; Name = "Linux-x64"; Launcher = "start-api.sh" }
-)
-
-foreach ($target in $apiTargets) {
-    Write-Host "  - Building $($target.Name)..." -ForegroundColor Yellow
-
+    $apiTempDir = ".\releases\temp\api-$($target.Runtime)"
     dotnet publish FlipKit.Api `
         -c Release `
         -r $target.Runtime `
         --self-contained true `
-        -o ".\releases\temp\api-$($target.Runtime)"
+        -o "$apiTempDir"
 
     if ($LASTEXITCODE -ne 0) {
-        throw "Build failed for API $($target.Name)"
+        throw "API build failed for $($target.Name)"
     }
 
-    # Create launcher script
-    $launcherPath = ".\releases\temp\api-$($target.Runtime)\$($target.Launcher)"
+    # Move API server to servers/ folder
+    Move-Item "$apiTempDir\*" "$serversDir\" -Force
+    Remove-Item $apiTempDir -Recurse -Force
 
-    if ($target.Runtime -like "win-*") {
-        @"
-@echo off
-echo Starting FlipKit API Server...
-echo.
-echo API will be available at:
-echo - http://localhost:5000 (local access)
-echo - http://YOUR-TAILSCALE-IP:5000 (remote access)
-echo.
-echo Get your Tailscale IP: tailscale ip -4
-echo.
-FlipKit.Api.exe
-"@ | Out-File -FilePath $launcherPath -Encoding ASCII
-    } else {
-        @"
-#!/bin/bash
-echo "Starting FlipKit API Server..."
-echo ""
-echo "API will be available at:"
-echo "- http://localhost:5000 (local access)"
-echo "- http://YOUR-TAILSCALE-IP:5000 (remote access)"
-echo ""
-echo "Get your Tailscale IP: tailscale ip -4"
-echo ""
+    Write-Host "    API server built successfully" -ForegroundColor Green
 
-./FlipKit.Api
-"@ | Out-File -FilePath $launcherPath -Encoding UTF8
-        # Make executable
-        if ($IsLinux -or $IsMacOS) {
-            chmod +x $launcherPath
-        }
-    }
+    # -------------------------------------------------------------------------
+    # 4. Copy Documentation
+    # -------------------------------------------------------------------------
+    Write-Host "  [4/4] Copying documentation..." -ForegroundColor Yellow
 
-    # Create archive
-    $ext = if ($target.Runtime -like "linux-*") { "tar.gz" } else { "zip" }
-    $archiveName = "FlipKit-API-$($target.Name)-v$Version.$ext"
+    $docsDir = "$hubDir\Docs"
+    New-Item -ItemType Directory -Path $docsDir -Force | Out-Null
 
-    if ($ext -eq "zip") {
+    # Copy key documentation files
+    Copy-Item ".\Docs\USER-GUIDE.md" "$docsDir\" -ErrorAction SilentlyContinue
+    Copy-Item ".\Docs\WEB-USER-GUIDE.md" "$docsDir\" -ErrorAction SilentlyContinue
+    Copy-Item ".\Docs\DEPLOYMENT-GUIDE.md" "$docsDir\" -ErrorAction SilentlyContinue
+    Copy-Item ".\README.md" "$docsDir\" -ErrorAction SilentlyContinue
+    Copy-Item ".\LICENSE" "$hubDir\" -ErrorAction SilentlyContinue
+
+    # -------------------------------------------------------------------------
+    # 5. Create README.txt with Quick Start
+    # -------------------------------------------------------------------------
+
+    $readmeContent = @"
+========================================
+FlipKit Hub v$Version
+========================================
+
+A unified package containing FlipKit Desktop, Web, and API servers.
+
+QUICK START
+-----------
+
+1. Launch FlipKit.Desktop$( if ($target.Runtime -like "win-*") { ".exe" } else { "" } )
+2. Servers auto-start automatically (configurable in Settings)
+3. Access Web UI from your phone:
+   - Connect phone to same Wi-Fi network
+   - Scan QR code in Settings, or
+   - Navigate to http://YOUR-IP:5000
+
+WHAT'S INCLUDED
+---------------
+
+- FlipKit Desktop (main application)
+- Web Server (mobile access on port 5000)
+- API Server (remote access on port 5001)
+
+All servers are managed from Desktop app Settings.
+
+DOCUMENTATION
+-------------
+
+See the Docs/ folder for complete guides:
+- USER-GUIDE.md - Desktop app features
+- WEB-USER-GUIDE.md - Mobile web interface
+- DEPLOYMENT-GUIDE.md - Advanced setup
+- README.md - Project overview
+
+SYSTEM REQUIREMENTS
+-------------------
+
+- $($target.Name)
+- Network connection (for mobile access)
+- No additional software required (self-contained)
+
+FEATURES
+--------
+
+- AI-powered card scanning (11 free vision models)
+- Inventory management with filtering and search
+- Pricing research via eBay/Terapeak
+- Whatnot CSV export with ImgBB hosting
+- Sales tracking and financial reports
+- Mobile web interface for on-the-go scanning
+- Shared SQLite database (WAL mode)
+
+GETTING HELP
+------------
+
+- Documentation: See Docs/ folder
+- Issues: https://github.com/mthous72/FlipKit/issues
+
+========================================
+"@
+
+    $readmeContent | Out-File -FilePath "$hubDir\README.txt" -Encoding UTF8
+
+    Write-Host "    Documentation added" -ForegroundColor Green
+
+    # -------------------------------------------------------------------------
+    # 6. Create Archive
+    # -------------------------------------------------------------------------
+    Write-Host "  Creating archive..." -ForegroundColor Yellow
+
+    $archiveName = "FlipKit-Hub-$($target.Name)-v$Version.$($target.Ext)"
+
+    if ($target.Ext -eq "zip") {
+        # Windows zip
         Compress-Archive `
-            -Path ".\releases\temp\api-$($target.Runtime)\*" `
+            -Path "$hubDir\*" `
             -DestinationPath ".\releases\$archiveName" `
             -Force
     } else {
-        tar -czf ".\releases\$archiveName" -C ".\releases\temp\api-$($target.Runtime)" .
+        # Linux tar.gz
+        $currentDir = Get-Location
+        Set-Location $hubDir
+        tar -czf "$currentDir\releases\$archiveName" *
+        Set-Location $currentDir
     }
 
-    Write-Host "    Created: $archiveName" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  ✓ Created: $archiveName" -ForegroundColor Green
+
+    # Calculate size
+    $size = (Get-Item ".\releases\$archiveName").Length / 1MB
+    Write-Host "    Size: $([math]::Round($size, 2)) MB" -ForegroundColor Cyan
+
+    # Clean up temp folder for this target
+    Remove-Item $hubDir -Recurse -Force
 }
 
 # ============================================================================
-# CLEANUP
-# ============================================================================
-
-Write-Host ""
-Write-Host "Cleaning up temporary files..." -ForegroundColor Yellow
-Remove-Item ".\releases\temp" -Recurse -Force
-
-# ============================================================================
-# SUMMARY
+# BUILD COMPLETE
 # ============================================================================
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Build Complete!" -ForegroundColor Green
+Write-Host "Build Complete!" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Release packages created in: .\releases\" -ForegroundColor White
-Write-Host ""
-Get-ChildItem ".\releases\*.zip", ".\releases\*.tar.gz" | ForEach-Object {
-    $sizeMB = [math]::Round($_.Length / 1MB, 2)
-    Write-Host "  $($_.Name) - $sizeMB MB" -ForegroundColor Gray
-}
 
+# List all packages
+$packages = Get-ChildItem ".\releases\*.zip", ".\releases\*.tar.gz" | Select-Object Name, @{Name="Size (MB)";Expression={[math]::Round($_.Length / 1MB, 2)}}
+
+Write-Host "Packages created:" -ForegroundColor Yellow
+$packages | Format-Table -AutoSize
+
+$totalSize = ($packages | Measure-Object -Property "Size (MB)" -Sum).Sum
+Write-Host "Total size: $([math]::Round($totalSize, 2)) MB" -ForegroundColor Cyan
+
+Write-Host ""
+Write-Host "Release files are in: .\releases\" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. Test the builds" -ForegroundColor White
-Write-Host "2. Create git tag: git tag v$Version" -ForegroundColor White
-Write-Host "3. Push tag: git push origin v$Version" -ForegroundColor White
-Write-Host "4. Create GitHub release and upload packages" -ForegroundColor White
+Write-Host "1. Test packages on Windows and Linux" -ForegroundColor White
+Write-Host "2. Create GitHub release v$Version" -ForegroundColor White
+Write-Host "3. Upload packages to release" -ForegroundColor White
+Write-Host "4. Update README.md with new download links" -ForegroundColor White
 Write-Host ""

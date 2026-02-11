@@ -52,5 +52,14 @@ namespace FlipKit.Core.Models
         // If empty/localhost: Uses local SQLite database (fast, direct access)
         // If Tailscale IP: Uses remote API (network access via FlipKit.Api)
         public string? SyncServerUrl { get; set; }  // e.g., "http://100.64.1.5:5000"
+
+        // FlipKit Hub - Server Management Settings
+        // Controls auto-start behavior and port configuration for embedded Web and API servers
+        public bool AutoStartWebServer { get; set; } = true;
+        public bool AutoStartApiServer { get; set; } = true;
+        public int WebServerPort { get; set; } = 5000;
+        public int ApiServerPort { get; set; } = 5001;
+        public bool MinimizeToTray { get; set; } = true;
+        public bool AutoOpenBrowser { get; set; } = true;
     }
 }

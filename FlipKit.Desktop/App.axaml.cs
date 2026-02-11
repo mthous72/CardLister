@@ -81,6 +81,7 @@ namespace FlipKit.Desktop
                 services.AddSingleton<HttpClient>();
                 services.AddSingleton<ISettingsService, JsonSettingsService>();
                 services.AddSingleton<IBrowserService, SystemBrowserService>();
+                services.AddSingleton<IServerManagementService, ServerManagementService>();
 
                 // Smart mode detection - choose between local database or API
                 using var tempProvider = services.BuildServiceProvider();
@@ -185,12 +186,79 @@ namespace FlipKit.Desktop
                     DataContext = _services.GetRequiredService<MainWindowViewModel>()
                 };
 
+                // Auto-start servers if configured (FlipKit Hub)
+                var hubSettings = _services.GetRequiredService<ISettingsService>().Load();
+                var serverManagement = _services.GetRequiredService<IServerManagementService>();
+
+                if (hubSettings.AutoStartWebServer || hubSettings.AutoStartApiServer)
+                {
+                    Log.Information("Auto-starting servers (Web: {Web}, API: {Api})",
+                        hubSettings.AutoStartWebServer, hubSettings.AutoStartApiServer);
+
+                    _ = System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // Start Web server if enabled
+                            if (hubSettings.AutoStartWebServer)
+                            {
+                                Log.Information("Auto-starting Web server on port {Port}", hubSettings.WebServerPort);
+                                var webResult = await serverManagement.StartWebServerAsync(hubSettings.WebServerPort);
+                                if (webResult.Success)
+                                {
+                                    Log.Information("Web server started successfully on port {Port}", webResult.ActualPort);
+
+                                    // Auto-open browser if configured
+                                    if (hubSettings.AutoOpenBrowser)
+                                    {
+                                        await System.Threading.Tasks.Task.Delay(2000); // Wait for server to fully initialize
+                                        var browserService = _services.GetRequiredService<IBrowserService>();
+                                        browserService.OpenUrl($"http://localhost:{webResult.ActualPort}");
+                                    }
+                                }
+                                else
+                                {
+                                    Log.Warning("Failed to start Web server: {Error}", webResult.ErrorMessage);
+                                }
+                            }
+
+                            // Start API server if enabled
+                            if (hubSettings.AutoStartApiServer)
+                            {
+                                Log.Information("Auto-starting API server on port {Port}", hubSettings.ApiServerPort);
+                                var apiResult = await serverManagement.StartApiServerAsync(hubSettings.ApiServerPort);
+                                if (apiResult.Success)
+                                {
+                                    Log.Information("API server started successfully on port {Port}", apiResult.ActualPort);
+                                }
+                                else
+                                {
+                                    Log.Warning("Failed to start API server: {Error}", apiResult.ErrorMessage);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Error during server auto-start");
+                        }
+                    });
+                }
+
                 desktop.ShutdownRequested += async (_, e) =>
                 {
                     Log.Information("FlipKit shutting down");
 
                     try
                     {
+                        // Stop any running servers first
+                        var serverManagement = _services?.GetService<IServerManagementService>();
+                        if (serverManagement != null)
+                        {
+                            Log.Information("Stopping servers...");
+                            await serverManagement.StopWebServerAsync();
+                            await serverManagement.StopApiServerAsync();
+                        }
+
                         // Unregister global exception handler
                         if (_exceptionHandler != null)
                         {

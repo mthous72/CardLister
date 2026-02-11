@@ -1,4 +1,4 @@
-@model CardLister.Web.Models.ExportPreviewViewModel
+@model FlipKit.Web.Models.ExportPreviewViewModel
 @{
     ViewData["Title"] = "Export Preview";
 }
@@ -201,7 +201,7 @@
             <div class="d-grid gap-2">
                 @if (!Model.ValidationErrors.Any())
                 {
-                    @if (Model.Card.Status != CardLister.Core.Models.Enums.CardStatus.Ready)
+                    @if (Model.Card.Status != FlipKit.Core.Models.Enums.CardStatus.Ready)
                     {
                         <form asp-action="MarkAsReady" method="post">
                             @Html.AntiForgeryToken()

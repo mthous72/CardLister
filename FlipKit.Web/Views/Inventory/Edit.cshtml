@@ -1,4 +1,4 @@
-@model CardLister.Web.Models.CardDetailsViewModel
+@model FlipKit.Web.Models.CardDetailsViewModel
 @{
     ViewData["Title"] = "Edit Card";
 }
@@ -34,7 +34,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="Sport" class="form-label"></label>
-                            <select asp-for="Sport" class="form-select" asp-items="Html.GetEnumSelectList<CardLister.Core.Models.Enums.Sport>()">
+                            <select asp-for="Sport" class="form-select" asp-items="Html.GetEnumSelectList<FlipKit.Core.Models.Enums.Sport>()">
                             </select>
                             <span asp-validation-for="Sport" class="text-danger"></span>
                         </div>

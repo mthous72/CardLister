@@ -68,7 +68,11 @@
       "Bash(dotnet add reference:*)",
       "Bash(echo:*)",
       "Bash(gh:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(robocopy:*)",
+      "Bash(cmd /c \"move FlipKit FlipKit.Desktop\")",
+      "Bash(cmd /c \"move FlipKit.Core FlipKit.Core\")",
+      "Bash(dotnet clean:*)"
     ]
   }
 }

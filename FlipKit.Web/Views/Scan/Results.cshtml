@@ -1,4 +1,4 @@
-@model CardLister.Web.Models.ScanResultViewModel
+@model FlipKit.Web.Models.ScanResultViewModel
 @using System.IO
 @{
     ViewData["Title"] = "Scan Results";
@@ -23,10 +23,10 @@
         </div>
     </div>
 
-    @if (Model.VerificationResult != null && Model.VerificationResult.OverallConfidence != CardLister.Core.Models.Enums.VerificationConfidence.Low)
+    @if (Model.VerificationResult != null && Model.VerificationResult.OverallConfidence != FlipKit.Core.Models.Enums.VerificationConfidence.Low)
     {
-        <div class="alert @(Model.VerificationResult.OverallConfidence == CardLister.Core.Models.Enums.VerificationConfidence.High ? "alert-success" :
-                             Model.VerificationResult.OverallConfidence == CardLister.Core.Models.Enums.VerificationConfidence.Medium ? "alert-warning" : "alert-info")">
+        <div class="alert @(Model.VerificationResult.OverallConfidence == FlipKit.Core.Models.Enums.VerificationConfidence.High ? "alert-success" :
+                             Model.VerificationResult.OverallConfidence == FlipKit.Core.Models.Enums.VerificationConfidence.Medium ? "alert-warning" : "alert-info")">
             <h5>
                 <i class="bi bi-check-circle"></i>
                 Verification: @Model.VerificationResult.OverallConfidence Confidence

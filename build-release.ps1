@@ -1,14 +1,14 @@
-# CardLister Release Build Script
+# FlipKit Release Build Script
 # Builds Desktop, Web, and API packages for all platforms
 
 param(
-    [string]$Version = "2.2.1"
+    [string]$Version = "3.0.0"
 )
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "CardLister v$Version Release Build" -ForegroundColor Cyan
+Write-Host "FlipKit v$Version Release Build" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -35,7 +35,7 @@ $desktopTargets = @(
 foreach ($target in $desktopTargets) {
     Write-Host "  - Building $($target.Name)..." -ForegroundColor Yellow
 
-    dotnet publish CardLister `
+    dotnet publish FlipKit.Desktop `
         -c Release `
         -r $target.Runtime `
         --self-contained true `
@@ -48,7 +48,7 @@ foreach ($target in $desktopTargets) {
     }
 
     # Create zip
-    $zipName = "CardLister-Desktop-$($target.Name)-v$Version.zip"
+    $zipName = "FlipKit-Desktop-$($target.Name)-v$Version.zip"
     Compress-Archive `
         -Path ".\releases\temp\desktop-$($target.Runtime)\*" `
         -DestinationPath ".\releases\$zipName" `
@@ -74,7 +74,7 @@ $webTargets = @(
 foreach ($target in $webTargets) {
     Write-Host "  - Building $($target.Name)..." -ForegroundColor Yellow
 
-    dotnet publish CardLister.Web `
+    dotnet publish FlipKit.Web `
         -c Release `
         -r $target.Runtime `
         --self-contained true `
@@ -90,7 +90,7 @@ foreach ($target in $webTargets) {
     if ($target.Runtime -like "win-*") {
         @"
 @echo off
-echo Starting CardLister Web App...
+echo Starting FlipKit Web App...
 echo.
 echo Web app will open in your browser at http://localhost:5001
 echo.
@@ -100,12 +100,12 @@ echo 2. Find your computer's IP address
 echo 3. Open browser on phone and go to http://YOUR-IP:5001
 echo.
 start http://localhost:5001
-CardLister.Web.exe --urls "http://0.0.0.0:5001"
+FlipKit.Web.exe --urls "http://0.0.0.0:5001"
 "@ | Out-File -FilePath $launcherPath -Encoding ASCII
     } else {
         @"
 #!/bin/bash
-echo "Starting CardLister Web App..."
+echo "Starting FlipKit Web App..."
 echo ""
 echo "Web app will open in your browser at http://localhost:5001"
 echo ""
@@ -123,7 +123,7 @@ elif command -v xdg-open &> /dev/null; then
 fi
 
 # Run web app
-./CardLister.Web --urls "http://0.0.0.0:5001"
+./FlipKit.Web --urls "http://0.0.0.0:5001"
 "@ | Out-File -FilePath $launcherPath -Encoding UTF8
         # Make executable
         if ($IsLinux -or $IsMacOS) {
@@ -133,7 +133,7 @@ fi
 
     # Create archive
     $ext = if ($target.Runtime -like "linux-*") { "tar.gz" } else { "zip" }
-    $archiveName = "CardLister-Web-$($target.Name)-v$Version.$ext"
+    $archiveName = "FlipKit-Web-$($target.Name)-v$Version.$ext"
 
     if ($ext -eq "zip") {
         Compress-Archive `
@@ -164,7 +164,7 @@ $apiTargets = @(
 foreach ($target in $apiTargets) {
     Write-Host "  - Building $($target.Name)..." -ForegroundColor Yellow
 
-    dotnet publish CardLister.Api `
+    dotnet publish FlipKit.Api `
         -c Release `
         -r $target.Runtime `
         --self-contained true `
@@ -180,7 +180,7 @@ foreach ($target in $apiTargets) {
     if ($target.Runtime -like "win-*") {
         @"
 @echo off
-echo Starting CardLister API Server...
+echo Starting FlipKit API Server...
 echo.
 echo API will be available at:
 echo - http://localhost:5000 (local access)
@@ -188,12 +188,12 @@ echo - http://YOUR-TAILSCALE-IP:5000 (remote access)
 echo.
 echo Get your Tailscale IP: tailscale ip -4
 echo.
-CardLister.Api.exe
+FlipKit.Api.exe
 "@ | Out-File -FilePath $launcherPath -Encoding ASCII
     } else {
         @"
 #!/bin/bash
-echo "Starting CardLister API Server..."
+echo "Starting FlipKit API Server..."
 echo ""
 echo "API will be available at:"
 echo "- http://localhost:5000 (local access)"
@@ -202,7 +202,7 @@ echo ""
 echo "Get your Tailscale IP: tailscale ip -4"
 echo ""
 
-./CardLister.Api
+./FlipKit.Api
 "@ | Out-File -FilePath $launcherPath -Encoding UTF8
         # Make executable
         if ($IsLinux -or $IsMacOS) {
@@ -212,7 +212,7 @@ echo ""
 
     # Create archive
     $ext = if ($target.Runtime -like "linux-*") { "tar.gz" } else { "zip" }
-    $archiveName = "CardLister-API-$($target.Name)-v$Version.$ext"
+    $archiveName = "FlipKit-API-$($target.Name)-v$Version.$ext"
 
     if ($ext -eq "zip") {
         Compress-Archive `

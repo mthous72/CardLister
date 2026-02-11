@@ -2,7 +2,7 @@
 # Builds Desktop, Web, and API packages for all platforms
 
 param(
-    [string]$Version = "2.2.0"
+    [string]$Version = "2.2.1"
 )
 
 $ErrorActionPreference = "Stop"

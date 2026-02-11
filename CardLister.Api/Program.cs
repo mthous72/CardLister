@@ -34,6 +34,30 @@ var app = builder.Build();
 app.UseCors();
 
 // ============================================================================
+// HEALTH CHECK / ROOT ENDPOINT
+// ============================================================================
+
+app.MapGet("/", () => Results.Ok(new
+{
+    Service = "CardLister API",
+    Version = "1.0",
+    Status = "Running",
+    Message = "API is healthy and ready to serve requests",
+    Endpoints = new
+    {
+        Cards = "/api/cards",
+        CardById = "/api/cards/{id}",
+        UnpricedCards = "/api/cards/unpriced",
+        StaleCards = "/api/cards/stale",
+        CardStats = "/api/cards/stats",
+        PriceHistory = "/api/cards/{id}/price-history",
+        SoldCardsReport = "/api/reports/sold"
+    }
+}))
+.WithName("HealthCheck")
+.WithOpenApi();
+
+// ============================================================================
 // CARD CRUD ENDPOINTS
 // ============================================================================
 

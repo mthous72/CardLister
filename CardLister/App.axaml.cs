@@ -22,6 +22,7 @@ namespace CardLister.Desktop
     public partial class App : Application
     {
         private IServiceProvider? _services;
+        private UnhandledExceptionEventHandler? _exceptionHandler;
 
         public override void Initialize()
         {
@@ -52,11 +53,12 @@ namespace CardLister.Desktop
                 .CreateLogger();
 
             // Global error logging
-            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            _exceptionHandler = (_, e) =>
             {
                 Log.Fatal(e.ExceptionObject as Exception, "Unhandled exception");
                 Log.CloseAndFlush();
             };
+            AppDomain.CurrentDomain.UnhandledException += _exceptionHandler;
 
             Log.Information("CardLister starting up");
 
@@ -81,7 +83,7 @@ namespace CardLister.Desktop
                 services.AddSingleton<IBrowserService, SystemBrowserService>();
 
                 // Smart mode detection - choose between local database or API
-                var tempProvider = services.BuildServiceProvider();
+                using var tempProvider = services.BuildServiceProvider();
                 var settingsService = tempProvider.GetRequiredService<ISettingsService>();
                 var settings = settingsService.Load();
                 var dataMode = DataAccessModeDetector.DetectMode(settings);
@@ -169,12 +171,46 @@ namespace CardLister.Desktop
                     DataContext = _services.GetRequiredService<MainWindowViewModel>()
                 };
 
-                desktop.ShutdownRequested += (_, _) =>
+                desktop.ShutdownRequested += async (_, e) =>
                 {
                     Log.Information("CardLister shutting down");
-                    Log.CloseAndFlush();
-                    if (_services is IDisposable disposable)
-                        disposable.Dispose();
+
+                    try
+                    {
+                        // Unregister global exception handler
+                        if (_exceptionHandler != null)
+                        {
+                            AppDomain.CurrentDomain.UnhandledException -= _exceptionHandler;
+                        }
+
+                        // Dispose ViewModels that implement IDisposable (e.g., BulkScanViewModel)
+                        if (desktop.MainWindow?.DataContext is MainWindowViewModel mainViewModel)
+                        {
+                            // Cancel any pending operations in BulkScanViewModel
+                            if (mainViewModel.CurrentPage is IDisposable disposableViewModel)
+                            {
+                                disposableViewModel.Dispose();
+                            }
+                        }
+
+                        // Dispose the service provider (closes DbContext, HttpClient, etc.)
+                        if (_services is IDisposable disposable)
+                        {
+                            disposable.Dispose();
+                        }
+
+                        // Small delay to ensure async operations complete
+                        await System.Threading.Tasks.Task.Delay(100);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during shutdown cleanup");
+                    }
+                    finally
+                    {
+                        Log.Information("Shutdown complete");
+                        Log.CloseAndFlush();
+                    }
                 };
             }
 

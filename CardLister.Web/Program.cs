@@ -32,16 +32,9 @@ if (dataMode == DataAccessMode.Local)
     // Local mode - direct database access (fast)
     Console.WriteLine($"Data access mode: LOCAL (Direct SQLite)");
 
-    var dbPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "CardLister", "cards.db");
-
-    // Ensure the directory exists
-    var dbDirectory = Path.GetDirectoryName(dbPath);
-    if (!Directory.Exists(dbDirectory))
-    {
-        Directory.CreateDirectory(dbDirectory!);
-    }
+    // Use the same database path as Desktop app
+    var dbPath = CardListerDbContext.GetDbPath();
+    Console.WriteLine($"Database path: {dbPath}");
 
     builder.Services.AddDbContext<CardListerDbContext>(options =>
         options.UseSqlite($"Data Source={dbPath}"));
@@ -77,9 +70,7 @@ var app = builder.Build();
 // Initialize database (only in local mode)
 if (dataMode == DataAccessMode.Local)
 {
-    var dbPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "CardLister", "cards.db");
+    var dbPath = CardListerDbContext.GetDbPath();
 
     // Enable WAL mode for shared database
     using (var connection = new SqliteConnection($"Data Source={dbPath}"))

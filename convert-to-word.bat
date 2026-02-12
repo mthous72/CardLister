@@ -6,10 +6,10 @@ REM Try to find and use pandoc
 where pandoc >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
     echo Found pandoc in PATH
-    pandoc "Docs\USER-GUIDE.md" -o "Docs\CardLister-User-Guide.docx" --toc --toc-depth=2 -s
+    pandoc "Docs\USER-GUIDE.md" -o "Docs\FlipKit-User-Guide.docx" --toc --toc-depth=2 -s
     if %ERRORLEVEL% EQU 0 (
         echo.
-        echo ✅ Success! Created: Docs\CardLister-User-Guide.docx
+        echo ✅ Success! Created: Docs\FlipKit-User-Guide.docx
         echo.
         pause
         exit /b 0

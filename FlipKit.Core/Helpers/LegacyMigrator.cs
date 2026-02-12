@@ -67,6 +67,15 @@ namespace FlipKit.Core.Helpers
                 // Copy all files from legacy folder to new folder
                 CopyDirectory(legacyFolder, newFolder, recursive: true);
 
+                // Rename settings.json to config.json if it exists
+                var oldSettingsPath = Path.Combine(newFolder, "settings.json");
+                var newConfigPath = Path.Combine(newFolder, "config.json");
+                if (File.Exists(oldSettingsPath) && !File.Exists(newConfigPath))
+                {
+                    File.Move(oldSettingsPath, newConfigPath);
+                    Log.Information("Renamed settings.json to config.json");
+                }
+
                 Log.Information("Migration complete! Data copied from {LegacyFolder} to {NewFolder}",
                     legacyFolder, newFolder);
 

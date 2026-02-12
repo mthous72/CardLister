@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Get database path from environment or use default
-var dbPath = Environment.GetEnvironmentVariable("CARDLISTER_DB_PATH")
+var dbPath = Environment.GetEnvironmentVariable("FLIPKIT_DB_PATH")
     ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FlipKit", "cards.db");
 
 // Add FlipKit.Core services (API only provides data access)

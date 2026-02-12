@@ -1,0 +1,6 @@
+@FlipKit.Api_HostAddress = http://localhost:5077
+
+GET {{FlipKit.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

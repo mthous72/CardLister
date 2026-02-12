@@ -1,4 +1,4 @@
-# CardLister Web Application Test Script
+# FlipKit Web Application Test Script
 # Tests all pages and basic functionality
 
 $baseUrl = "http://localhost:5000"
@@ -32,11 +32,11 @@ function Test-Page {
     }
 }
 
-Write-Host "`n=== CardLister Web Application Test Suite ===" -ForegroundColor Yellow
+Write-Host "`n=== FlipKit Web Application Test Suite ===" -ForegroundColor Yellow
 Write-Host "Base URL: $baseUrl`n" -ForegroundColor Yellow
 
 # Test Home Dashboard
-$results += Test-Page -Name "Home Dashboard" -Url "/" -ExpectedContent "CardLister"
+$results += Test-Page -Name "Home Dashboard" -Url "/" -ExpectedContent "FlipKit"
 
 # Test Inventory Pages
 $results += Test-Page -Name "Inventory Index" -Url "/Inventory" -ExpectedContent "Inventory"

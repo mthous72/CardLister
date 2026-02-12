@@ -1,13 +1,13 @@
 @echo off
-REM CardLister Web - Build Distributable Package
+REM FlipKit Web - Build Distributable Package
 REM Creates a self-contained deployment for Windows
 
 echo ================================
-echo CardLister Web - Build Package
+echo FlipKit Web - Build Package
 echo ================================
 echo.
 
-set OUTPUT_DIR=.\publish\CardLister-Web-Windows
+set OUTPUT_DIR=.\publish\FlipKit-Web-Windows
 set VERSION=2.0.4
 
 echo Cleaning previous builds...
@@ -16,7 +16,7 @@ mkdir publish
 
 echo.
 echo Building self-contained package...
-dotnet publish CardLister.Web\CardLister.Web.csproj ^
+dotnet publish FlipKit.Web\FlipKit.Web.csproj ^
   -c Release ^
   -r win-x64 ^
   --self-contained true ^
@@ -35,13 +35,13 @@ echo.
 echo Creating launcher script...
 (
 echo @echo off
-echo REM CardLister Web Application Launcher
+echo REM FlipKit Web Application Launcher
 echo.
 echo set ASPNETCORE_URLS=http://0.0.0.0:5000
 echo set ASPNETCORE_ENVIRONMENT=Production
 echo.
 echo echo =====================================
-echo echo   CardLister Web Application
+echo echo   FlipKit Web Application
 echo echo =====================================
 echo echo.
 echo echo Starting server on http://localhost:5000
@@ -51,13 +51,13 @@ echo echo Press Ctrl+C to stop the server
 echo echo.
 echo.
 echo start http://localhost:5000
-echo CardLister.Web.exe
+echo FlipKit.Web.exe
 ) > %OUTPUT_DIR%\StartWeb.bat
 
 echo.
 echo Creating README...
 (
-echo # CardLister Web Application
+echo # FlipKit Web Application
 echo.
 echo ## Quick Start
 echo.
@@ -82,20 +82,20 @@ echo.
 echo 1. Open Windows Defender Firewall
 echo 2. Advanced Settings -^> Inbound Rules -^> New Rule
 echo 3. Port -^> TCP -^> 5000 -^> Allow -^> Private
-echo 4. Name: "CardLister Web"
+echo 4. Name: "FlipKit Web"
 echo.
 echo Or run this PowerShell command ^(as Administrator^):
 echo.
 echo ```powershell
-echo New-NetFirewallRule -DisplayName "CardLister Web" -Direction Inbound -LocalPort 5000 -Protocol TCP -Action Allow -Profile Private
+echo New-NetFirewallRule -DisplayName "FlipKit Web" -Direction Inbound -LocalPort 5000 -Protocol TCP -Action Allow -Profile Private
 echo ```
 echo.
 echo ## Database Location
 echo.
 echo The database is stored at:
-echo `%%APPDATA%%\CardLister\cards.db`
+echo `%%APPDATA%%\FlipKit\cards.db`
 echo.
-echo This is shared with CardLister Desktop if installed.
+echo This is shared with FlipKit Desktop if installed.
 echo.
 echo ## Documentation
 echo.
@@ -114,12 +114,12 @@ echo - Check firewall allows port 5000
 echo - Verify app is running ^(console window open^)
 echo.
 echo **Database errors:**
-echo - Ensure %%APPDATA%%\CardLister directory exists
-echo - Close CardLister Desktop if running
+echo - Ensure %%APPDATA%%\FlipKit directory exists
+echo - Close FlipKit Desktop if running
 echo.
 echo ## Version
 echo.
-echo CardLister Web v%VERSION%
+echo FlipKit Web v%VERSION%
 echo Built: %DATE% %TIME%
 ) > %OUTPUT_DIR%\README.md
 
@@ -131,7 +131,7 @@ xcopy /Y /I Docs\DEPLOYMENT-GUIDE.md %OUTPUT_DIR%\Docs\
 echo.
 echo Creating ZIP archive...
 cd publish
-powershell -Command "Compress-Archive -Path 'CardLister-Web-Windows' -DestinationPath 'CardLister-Web-Windows-v%VERSION%.zip' -Force"
+powershell -Command "Compress-Archive -Path 'FlipKit-Web-Windows' -DestinationPath 'FlipKit-Web-Windows-v%VERSION%.zip' -Force"
 cd ..
 
 echo.
@@ -139,16 +139,16 @@ echo ================================
 echo BUILD COMPLETE!
 echo ================================
 echo.
-echo Package location: publish\CardLister-Web-Windows-v%VERSION%.zip
+echo Package location: publish\FlipKit-Web-Windows-v%VERSION%.zip
 echo Package size:
-dir publish\*.zip | find "CardLister-Web"
+dir publish\*.zip | find "FlipKit-Web"
 echo.
 echo To test locally:
-echo   cd publish\CardLister-Web-Windows
+echo   cd publish\FlipKit-Web-Windows
 echo   StartWeb.bat
 echo.
 echo To distribute:
-echo   1. Upload CardLister-Web-Windows-v%VERSION%.zip to GitHub Releases
+echo   1. Upload FlipKit-Web-Windows-v%VERSION%.zip to GitHub Releases
 echo   2. Users download, extract, and run StartWeb.bat
 echo.
 

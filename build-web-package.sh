@@ -1,9 +1,9 @@
 #!/bin/bash
-# CardLister Web - Build Distributable Package
+# FlipKit Web - Build Distributable Package
 # Creates self-contained deployments for macOS and Linux
 
 echo "================================"
-echo "CardLister Web - Build Package"
+echo "FlipKit Web - Build Package"
 echo "================================"
 echo ""
 
@@ -17,13 +17,13 @@ mkdir -p publish
 # Build for macOS (Intel)
 echo ""
 echo "Building macOS (Intel) package..."
-dotnet publish CardLister.Web/CardLister.Web.csproj \
+dotnet publish FlipKit.Web/FlipKit.Web.csproj \
   -c Release \
   -r osx-x64 \
   --self-contained true \
   -p:PublishSingleFile=false \
   -p:PublishReadyToRun=true \
-  -o publish/CardLister-Web-macOS-Intel
+  -o publish/FlipKit-Web-macOS-Intel
 
 if [ $? -ne 0 ]; then
     echo ""
@@ -34,13 +34,13 @@ fi
 # Build for macOS (Apple Silicon)
 echo ""
 echo "Building macOS (Apple Silicon) package..."
-dotnet publish CardLister.Web/CardLister.Web.csproj \
+dotnet publish FlipKit.Web/FlipKit.Web.csproj \
   -c Release \
   -r osx-arm64 \
   --self-contained true \
   -p:PublishSingleFile=false \
   -p:PublishReadyToRun=true \
-  -o publish/CardLister-Web-macOS-ARM
+  -o publish/FlipKit-Web-macOS-ARM
 
 if [ $? -ne 0 ]; then
     echo ""
@@ -51,13 +51,13 @@ fi
 # Build for Linux
 echo ""
 echo "Building Linux package..."
-dotnet publish CardLister.Web/CardLister.Web.csproj \
+dotnet publish FlipKit.Web/FlipKit.Web.csproj \
   -c Release \
   -r linux-x64 \
   --self-contained true \
   -p:PublishSingleFile=false \
   -p:PublishReadyToRun=true \
-  -o publish/CardLister-Web-Linux
+  -o publish/FlipKit-Web-Linux
 
 if [ $? -ne 0 ]; then
     echo ""
@@ -75,13 +75,13 @@ create_launcher() {
 
     cat > "$OUTPUT_DIR/start-web.sh" << 'EOF'
 #!/bin/bash
-# CardLister Web Application Launcher
+# FlipKit Web Application Launcher
 
 export ASPNETCORE_URLS="http://0.0.0.0:5000"
 export ASPNETCORE_ENVIRONMENT="Production"
 
 echo "====================================="
-echo "  CardLister Web Application"
+echo "  FlipKit Web Application"
 echo "====================================="
 echo ""
 echo "Starting server on http://localhost:5000"
@@ -100,16 +100,16 @@ elif command -v xdg-open &> /dev/null; then
 fi
 
 # Start the app
-./CardLister.Web
+./FlipKit.Web
 EOF
 
     chmod +x "$OUTPUT_DIR/start-web.sh"
-    chmod +x "$OUTPUT_DIR/CardLister.Web"
+    chmod +x "$OUTPUT_DIR/FlipKit.Web"
 }
 
-create_launcher "publish/CardLister-Web-macOS-Intel"
-create_launcher "publish/CardLister-Web-macOS-ARM"
-create_launcher "publish/CardLister-Web-Linux"
+create_launcher "publish/FlipKit-Web-macOS-Intel"
+create_launcher "publish/FlipKit-Web-macOS-ARM"
+create_launcher "publish/FlipKit-Web-Linux"
 
 # Create README files
 echo ""
@@ -120,7 +120,7 @@ create_readme() {
     local PLATFORM=$2
 
     cat > "$OUTPUT_DIR/README.md" << EOF
-# CardLister Web Application
+# FlipKit Web Application
 
 ## Quick Start
 
@@ -138,7 +138,7 @@ create_readme() {
 Make the launcher executable:
 \`\`\`bash
 chmod +x start-web.sh
-chmod +x CardLister.Web
+chmod +x FlipKit.Web
 \`\`\`
 
 ## Mobile Access
@@ -157,7 +157,7 @@ chmod +x CardLister.Web
 
 **macOS:**
 - System Preferences → Security & Privacy → Firewall
-- Allow CardLister.Web to accept incoming connections
+- Allow FlipKit.Web to accept incoming connections
 
 **Linux (ufw):**
 \`\`\`bash
@@ -167,10 +167,10 @@ sudo ufw allow 5000/tcp
 ## Database Location
 
 The database is stored at:
-- macOS: \`~/Library/Application Support/CardLister/cards.db\`
-- Linux: \`~/.local/share/CardLister/cards.db\`
+- macOS: \`~/Library/Application Support/FlipKit/cards.db\`
+- Linux: \`~/.local/share/FlipKit/cards.db\`
 
-This is shared with CardLister Desktop if installed.
+This is shared with FlipKit Desktop if installed.
 
 ## Documentation
 
@@ -190,7 +190,7 @@ See \`Docs/DEPLOYMENT-GUIDE.md\` for advanced deployment options.
 **Permission denied:**
 \`\`\`bash
 chmod +x start-web.sh
-chmod +x CardLister.Web
+chmod +x FlipKit.Web
 \`\`\`
 
 ## Platform
@@ -199,7 +199,7 @@ $PLATFORM
 
 ## Version
 
-CardLister Web v$VERSION
+FlipKit Web v$VERSION
 Built: $(date)
 EOF
 
@@ -209,9 +209,9 @@ EOF
     cp Docs/DEPLOYMENT-GUIDE.md "$OUTPUT_DIR/Docs/" 2>/dev/null || true
 }
 
-create_readme "publish/CardLister-Web-macOS-Intel" "macOS (Intel x64)"
-create_readme "publish/CardLister-Web-macOS-ARM" "macOS (Apple Silicon ARM64)"
-create_readme "publish/CardLister-Web-Linux" "Linux (x64)"
+create_readme "publish/FlipKit-Web-macOS-Intel" "macOS (Intel x64)"
+create_readme "publish/FlipKit-Web-macOS-ARM" "macOS (Apple Silicon ARM64)"
+create_readme "publish/FlipKit-Web-Linux" "Linux (x64)"
 
 # Create archives
 echo ""
@@ -220,16 +220,16 @@ echo "Creating ZIP archives..."
 cd publish
 
 # macOS Intel
-zip -r -q "CardLister-Web-macOS-Intel-v$VERSION.zip" CardLister-Web-macOS-Intel
-echo "Created: CardLister-Web-macOS-Intel-v$VERSION.zip"
+zip -r -q "FlipKit-Web-macOS-Intel-v$VERSION.zip" FlipKit-Web-macOS-Intel
+echo "Created: FlipKit-Web-macOS-Intel-v$VERSION.zip"
 
 # macOS ARM
-zip -r -q "CardLister-Web-macOS-ARM-v$VERSION.zip" CardLister-Web-macOS-ARM
-echo "Created: CardLister-Web-macOS-ARM-v$VERSION.zip"
+zip -r -q "FlipKit-Web-macOS-ARM-v$VERSION.zip" FlipKit-Web-macOS-ARM
+echo "Created: FlipKit-Web-macOS-ARM-v$VERSION.zip"
 
 # Linux
-tar -czf "CardLister-Web-Linux-v$VERSION.tar.gz" CardLister-Web-Linux
-echo "Created: CardLister-Web-Linux-v$VERSION.tar.gz"
+tar -czf "FlipKit-Web-Linux-v$VERSION.tar.gz" FlipKit-Web-Linux
+echo "Created: FlipKit-Web-Linux-v$VERSION.tar.gz"
 
 cd ..
 
@@ -242,7 +242,7 @@ echo "Packages created:"
 ls -lh publish/*.zip publish/*.tar.gz 2>/dev/null | awk '{print $9, "(" $5 ")"}'
 echo ""
 echo "To test locally:"
-echo "  cd publish/CardLister-Web-[PLATFORM]"
+echo "  cd publish/FlipKit-Web-[PLATFORM]"
 echo "  ./start-web.sh"
 echo ""
 echo "To distribute:"

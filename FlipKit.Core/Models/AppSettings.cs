@@ -43,6 +43,9 @@ namespace FlipKit.Core.Models
         // eBay Sold: More comprehensive with manufacturer and team for better filtering
         public string EbaySearchTemplate { get; set; } = "{Year} {Manufacturer} {Brand} {Player} {Team} {Parallel} {Attributes} {Grade}";
 
+        // Smart eBay Query Mode - Intelligently includes fields based on available data
+        public bool UseSmartEbayQuery { get; set; } = true;
+
         // Bulk Scan Concurrency Settings
         // For free models (:free suffix), use 1 to avoid rate limits with the 4-second delay
         // For paid models (with credits), use 3-4 for optimal performance

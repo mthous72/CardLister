@@ -6,6 +6,8 @@ namespace FlipKit.Core.Services
     {
         string BuildTerapeakUrl(Card card);
         string BuildEbaySoldUrl(Card card);
+        string BuildSmartEbayQuery(Card card);
+        string BuildSmartEbayUrl(Card card);
         decimal SuggestPrice(decimal estimatedValue, Card card);
         decimal CalculateNet(decimal salePrice, decimal feePercent = 11m);
     }

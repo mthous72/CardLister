@@ -11,5 +11,6 @@ namespace FlipKit.Web.Models
         public string? FrontImagePath { get; set; }
         public string? BackImagePath { get; set; }
         public VerificationResult? VerificationResult { get; set; }
+        public string ScanMode { get; set; } = "selling"; // Default to selling mode for backwards compatibility
     }
 }

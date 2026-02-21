@@ -15,6 +15,7 @@ namespace FlipKit.Web.Controllers
         private readonly ISettingsService _settingsService;
         private readonly ILogger<ScanController> _logger;
         private readonly IWebHostEnvironment _environment;
+        private readonly IPricerService _pricerService;
 
         public ScanController(
             IScannerService scannerService,
@@ -22,7 +23,8 @@ namespace FlipKit.Web.Controllers
             IVariationVerifier variationVerifier,
             ISettingsService settingsService,
             ILogger<ScanController> logger,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            IPricerService pricerService)
         {
             _scannerService = scannerService;
             _cardRepository = cardRepository;
@@ -30,12 +32,26 @@ namespace FlipKit.Web.Controllers
             _settingsService = settingsService;
             _logger = logger;
             _environment = environment;
+            _pricerService = pricerService;
         }
 
         // GET: Scan
-        public IActionResult Index()
+        public IActionResult Index(string? mode)
         {
-            return View(new ScanUploadViewModel());
+            // Store mode in session
+            if (!string.IsNullOrEmpty(mode))
+            {
+                HttpContext.Session.SetString("ScanMode", mode);
+            }
+
+            var scanMode = HttpContext.Session.GetString("ScanMode") ?? "selling";
+
+            var viewModel = new ScanUploadViewModel
+            {
+                ScanMode = scanMode
+            };
+
+            return View(viewModel);
         }
 
         // POST: Scan/Upload
@@ -143,7 +159,10 @@ namespace FlipKit.Web.Controllers
         // POST: Scan/Save
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Save()
+        public async Task<IActionResult> Save(
+            decimal? estimatedValue,
+            decimal? listingPrice,
+            decimal? costBasis)
         {
             var scanResultJson = TempData["ScanResult"] as string;
             if (string.IsNullOrEmpty(scanResultJson))
@@ -162,6 +181,14 @@ namespace FlipKit.Web.Controllers
                 }
 
                 var card = scanViewModel.ScannedCard;
+
+                // Set pricing data if provided (from Research page)
+                if (estimatedValue.HasValue)
+                    card.EstimatedValue = estimatedValue.Value;
+                if (listingPrice.HasValue)
+                    card.ListingPrice = listingPrice.Value;
+                if (costBasis.HasValue)
+                    card.CostBasis = costBasis.Value;
 
                 // Set default status
                 card.Status = CardStatus.Draft;
@@ -184,6 +211,94 @@ namespace FlipKit.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving scanned card");
+                TempData["ErrorMessage"] = $"Failed to save card: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Scan/ResearchComps
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ResearchComps(Card scannedCard, string? frontImagePath, string? backImagePath, string? scanMode)
+        {
+            if (scannedCard == null)
+            {
+                TempData["ErrorMessage"] = "No card data provided.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Build comp research URLs from temp card data (no database involved)
+            var terapeakUrl = _pricerService.BuildTerapeakUrl(scannedCard);
+            var ebaySoldUrl = _pricerService.BuildEbaySoldUrl(scannedCard);
+
+            // Create research view model
+            var viewModel = new ScanResearchViewModel
+            {
+                ScannedCard = scannedCard,
+                FrontImagePath = frontImagePath,
+                BackImagePath = backImagePath,
+                TerapeakUrl = terapeakUrl,
+                EbaySoldUrl = ebaySoldUrl,
+                ScanMode = scanMode ?? "buying"
+            };
+
+            // Store in TempData for back navigation and potential save
+            TempData["ScanResult"] = JsonSerializer.Serialize(new ScanResultViewModel
+            {
+                ScannedCard = scannedCard,
+                FrontImagePath = frontImagePath,
+                BackImagePath = backImagePath,
+                ScanMode = scanMode ?? "buying"
+            });
+            TempData.Keep("ScanResult");
+
+            _logger.LogInformation("Research comps for {PlayerName} (mode: {Mode})",
+                scannedCard.PlayerName, scanMode);
+
+            return View("Research", viewModel);
+        }
+
+        // POST: Scan/SaveAndResearch
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveAndResearch()
+        {
+            var scanResultJson = TempData["ScanResult"] as string;
+            if (string.IsNullOrEmpty(scanResultJson))
+            {
+                TempData["ErrorMessage"] = "Scan results expired. Please scan again.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var scanViewModel = JsonSerializer.Deserialize<ScanResultViewModel>(scanResultJson);
+                if (scanViewModel?.ScannedCard == null)
+                {
+                    TempData["ErrorMessage"] = "Invalid scan data.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var card = scanViewModel.ScannedCard;
+
+                // Set defaults and save
+                card.Status = CardStatus.Draft;
+                card.CreatedAt = DateTime.UtcNow;
+                card.UpdatedAt = DateTime.UtcNow;
+                card.ImagePathFront = scanViewModel.FrontImagePath;
+                card.ImagePathBack = scanViewModel.BackImagePath;
+
+                await _cardRepository.InsertCardAsync(card);
+
+                _logger.LogInformation("Card saved and redirecting to pricing: {PlayerName}", card.PlayerName);
+
+                // Redirect to pricing research (now with database ID)
+                TempData["SuccessMessage"] = $"Card '{card.PlayerName}' saved!";
+                return RedirectToAction("Research", "Pricing", new { id = card.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SaveAndResearch");
                 TempData["ErrorMessage"] = $"Failed to save card: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }

@@ -9,20 +9,20 @@ A unified desktop application for sports card sellers with embedded Web and API 
 
 Built with **C# / .NET 8**, using **Avalonia UI 11** for desktop and **ASP.NET Core MVC** for web.
 
-> **Note:** This is a **production-ready application** with complete features for the core workflow. v3.1.0 introduces unified Hub architecture where all servers are managed from the Desktop app.
+> **Note:** This is a **production-ready application** with complete features for the core workflow. **v3.2.0** introduces flexible scanning workflows optimized for mobile research and smart pricing tools.
 
 ## Download
 
 Pre-built executables are available on the [Releases page](https://github.com/mthous72/FlipKit/releases). No .NET runtime install needed -- these are fully self-contained.
 
-### FlipKit Hub (v3.1.0+)
+### FlipKit Hub (v3.2.0+)
 
 **Unified package** with Desktop app + embedded Web and API servers:
 
 | Platform | File | Size |
 |----------|------|------|
-| Windows (x64) | `FlipKit-Hub-Windows-x64-v3.1.0.zip` | ~150 MB |
-| Linux (x64) | `FlipKit-Hub-Linux-x64-v3.1.0.tar.gz` | ~145 MB |
+| Windows (x64) | `FlipKit-Hub-Windows-x64-v3.2.0.zip` | ~150 MB |
+| Linux (x64) | `FlipKit-Hub-Linux-x64-v3.2.0.zip` | ~145 MB |
 
 > **Note:** macOS builds are not provided due to code signing requirements. macOS users can build from source.
 
@@ -86,9 +86,12 @@ These features are implemented and functional today:
 Mobile-optimized web interface accessible from any device on your network. **Now embedded in FlipKit Hub** - starts automatically with Desktop app, managed from Settings:
 
 - **Mobile Camera Scanning** -- Use your phone's camera to scan cards directly from the web browser. Touch-optimized upload interface with instant camera access.
+- **Flexible Scanning Workflows (v3.2.0)** -- Choose between **Buying Mode** (quick comp research without saving to inventory) and **Selling Mode** (full catalog building). Edit AI scan results before researching or saving. Iterate between editing and pricing research without database commitment.
+- **Editable Scan Results** -- Review and correct AI extractions with 15 essential fields (player, sport, year, brand, set, grading, parallels, features) before committing to your inventory or researching prices.
+- **Research Without Saving** -- Check card values while shopping at shows without cluttering your inventory. Scan → Edit → Research Comps → Discard. Perfect for buying decisions.
 - **Full Inventory Management** -- Browse, search, filter, edit, and delete cards from your phone. Responsive table layout with pagination, status filters, and quick actions.
 - **Card Details & Editing** -- View complete card information and edit any field (price, status, notes, etc.) from mobile. Changes sync instantly with desktop app.
-- **Pricing Research** -- Quick access to eBay and Terapeak pricing tools. Real-time profit calculator shows fees, revenue, and margin as you type.
+- **Smart Pricing Research** -- Intelligent eBay query builder dynamically includes relevant fields (sport, brand, set, team, parallels, grading) while excluding overly specific data (card numbers, serial numbers) for optimal comp results. Real-time profit calculator shows fees, revenue, and margin as you type.
 - **CSV Export** -- Generate Whatnot-compatible CSV files directly from your phone. Select cards and export for bulk listing.
 - **Sales Reports** -- View sold card analytics, revenue, and profit tracking from mobile.
 - **Shared Database** -- Uses the same SQLite database as the desktop app with Write-Ahead Logging (WAL) for concurrent access. Perfect for multi-device workflows.
@@ -96,10 +99,10 @@ Mobile-optimized web interface accessible from any device on your network. **Now
 - **Tailscale Network Access** -- Access from anywhere on your private Tailscale network. Scan cards at a show, manage inventory from a coffee shop, or check prices while shopping - all from your phone securely connected to your home computer.
 
 **Use Cases:**
-- Scan cards at card shows using your phone's camera
-- Quick price checks while shopping for cards
-- Research comps from your phone while browsing eBay
-- Scan cards away from your desk, manage them later on desktop
+- **Quick comp research while shopping** -- Scan cards at shows, check prices instantly without saving to inventory (Buying Mode)
+- **Build inventory catalog** -- Scan, price, and save cards for listing (Selling Mode)
+- **Iterate on pricing** -- Edit card details, research comps, go back and edit again, then save when ready
+- **Mobile-first workflow** -- Scan away from your desk, manage on desktop later
 
 ## Known Limitations
 
@@ -121,12 +124,12 @@ Here's what's rough or missing in the desktop application:
 
 Limitations specific to the web application:
 
-- **No Bulk Scanning** -- Web app only supports single-card scanning. Use desktop app for batch scanning (10+ cards).
+- **No Bulk Scanning** -- Web app only supports single-card scanning (up to 2 images: front + back). Use desktop app for batch scanning (10+ cards) or detail shots (5 images per card).
 - **No Settings Configuration** -- API keys and preferences must be configured in the desktop app. Web app reads from the shared `settings.json` file.
 - **No Authentication** -- Web app has no login system. When using Tailscale, network access is restricted to your private network. For local Wi-Fi, anyone on your network can access it.
 - **HTTP Only (Local Wi-Fi)** -- Local network access uses HTTP. Tailscale provides encrypted tunnel. For internet deployment, HTTPS would be needed.
 - **Designed for Tailscale/Local Access** -- Best used on private Tailscale network or trusted local Wi-Fi. Not suitable for public internet deployment without authentication and HTTPS.
-- **Manual IP Entry** -- You need to find your computer's IP address and type it on your phone. No auto-discovery yet.
+- **QR Code Access** -- Use the QR code in Desktop Settings → Servers for instant mobile connection, or manually enter your computer's IP address.
 
 ## Roadmap
 

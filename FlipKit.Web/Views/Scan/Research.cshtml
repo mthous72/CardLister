@@ -1,0 +1,307 @@
+@model FlipKit.Web.Models.ScanResearchViewModel
+@using System.IO
+@{
+    ViewData["Title"] = "Research Comps";
+}
+
+<div class="container mt-4">
+    <h1 class="display-5 mb-4">
+        <i class="bi bi-graph-up"></i> Research Comps
+    </h1>
+
+    <div class="row">
+        <!-- Left Column: Card Details + External Links -->
+        <div class="col-md-4">
+            <!-- Images Card -->
+            @if (!string.IsNullOrEmpty(Model.FrontImagePath) || !string.IsNullOrEmpty(Model.BackImagePath))
+            {
+                <div class="card mb-3">
+                    <div class="card-header"><h5>Card Images</h5></div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(Model.FrontImagePath))
+                        {
+                            <img src="@Url.Content($"~/uploads/{System.IO.Path.GetFileName(Model.FrontImagePath)}")"
+                                 class="img-fluid mb-2 rounded" alt="Front" />
+                        }
+                        @if (!string.IsNullOrEmpty(Model.BackImagePath))
+                        {
+                            <img src="@Url.Content($"~/uploads/{System.IO.Path.GetFileName(Model.BackImagePath)}")"
+                                 class="img-fluid rounded" alt="Back" />
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Card Details Card -->
+            <div class="card mb-3">
+                <div class="card-header"><h5>Card Details</h5></div>
+                <div class="card-body">
+                    <h4 class="card-title">@Model.ScannedCard.PlayerName</h4>
+                    <dl class="row mb-0">
+                        @if (Model.ScannedCard.Sport.HasValue)
+                        {
+                            <dt class="col-5">Sport:</dt>
+                            <dd class="col-7">@Model.ScannedCard.Sport</dd>
+                        }
+
+                        @if (Model.ScannedCard.Year.HasValue)
+                        {
+                            <dt class="col-5">Year:</dt>
+                            <dd class="col-7">@Model.ScannedCard.Year</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.ScannedCard.Brand))
+                        {
+                            <dt class="col-5">Brand:</dt>
+                            <dd class="col-7">@Model.ScannedCard.Brand</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.ScannedCard.SetName))
+                        {
+                            <dt class="col-5">Set:</dt>
+                            <dd class="col-7">@Model.ScannedCard.SetName</dd>
+                        }
+
+                        @if (Model.ScannedCard.IsGraded)
+                        {
+                            <dt class="col-5">Grade:</dt>
+                            <dd class="col-7">
+                                <span class="badge bg-success">
+                                    @Model.ScannedCard.GradeCompany @Model.ScannedCard.GradeValue
+                                </span>
+                            </dd>
+                        }
+                    </dl>
+
+                    <!-- Feature Badges -->
+                    @if (Model.ScannedCard.IsRookie || Model.ScannedCard.IsAuto || Model.ScannedCard.IsRelic)
+                    {
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            @if (Model.ScannedCard.IsRookie)
+                            {
+                                <span class="badge bg-warning text-dark">RC</span>
+                            }
+                            @if (Model.ScannedCard.IsAuto)
+                            {
+                                <span class="badge bg-info">Auto</span>
+                            }
+                            @if (Model.ScannedCard.IsRelic)
+                            {
+                                <span class="badge bg-success">Relic</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- External Research Links -->
+            <div class="card mb-3">
+                <div class="card-header"><h5>Research Tools</h5></div>
+                <div class="card-body d-grid gap-2">
+                    <a href="@Model.TerapeakUrl" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-graph-up"></i> eBay Terapeak
+                    </a>
+                    <a href="@Model.EbaySoldUrl" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> eBay Sold Listings
+                    </a>
+                    <small class="text-muted mt-2">
+                        <i class="bi bi-info-circle"></i> Links open in new tab
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Pricing Form -->
+        <div class="col-md-8">
+            <!-- Pricing Calculator Card -->
+            <div class="card mb-3">
+                <div class="card-header"><h5>Pricing Calculator</h5></div>
+                <div class="card-body">
+                    <div id="pricingForm">
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Market Value</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="estimatedValue"
+                                       step="0.01" min="0" placeholder="0.00" />
+                            </div>
+                            <small class="text-muted">
+                                Based on your comp research, what's the market value?
+                            </small>
+                        </div>
+
+                        <div class="mb-3" id="suggestedPriceContainer" style="display: none;">
+                            <label class="form-label">Suggested Listing Price</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="suggestedPrice" readonly />
+                            </div>
+                            <small class="text-muted">
+                                Auto-calculated using pricing algorithm
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Your Listing Price</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="listingPrice"
+                                       step="0.01" min="0" placeholder="0.00" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profit Calculator (read-only display) -->
+                    <div class="card bg-light mt-4">
+                        <div class="card-body">
+                            <h6>Profit Preview</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-6">Listing Price:</dt>
+                                <dd class="col-sm-6 text-end" id="displayListingPrice">$0.00</dd>
+
+                                <dt class="col-sm-6">Fees (11%):</dt>
+                                <dd class="col-sm-6 text-end text-danger" id="displayFees">$0.00</dd>
+
+                                <dt class="col-sm-6">Net Revenue:</dt>
+                                <dd class="col-sm-6 text-end" id="displayRevenue">$0.00</dd>
+
+                                <dt class="col-sm-6">Cost Basis:</dt>
+                                <dd class="col-sm-6 text-end">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control text-end"
+                                               id="costBasis" step="0.01" min="0" placeholder="0.00"
+                                               style="width: 100px;" />
+                                    </div>
+                                </dd>
+
+                                <dt class="col-sm-6"><strong>Net Profit:</strong></dt>
+                                <dd class="col-sm-6 text-end">
+                                    <strong id="displayProfit" class="text-success">$0.00</strong>
+                                    <span id="displayMargin" class="text-muted small"></span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="mb-3">
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="scanMode" id="buyingMode" value="buying"
+                           @(Model.ScanMode == "buying" ? "checked" : "")>
+                    <label class="btn btn-outline-primary" for="buyingMode">
+                        <i class="bi bi-cart"></i> Buying Mode
+                    </label>
+                    <input type="radio" class="btn-check" name="scanMode" id="sellingMode" value="selling"
+                           @(Model.ScanMode == "selling" ? "checked" : "")>
+                    <label class="btn btn-outline-success" for="sellingMode">
+                        <i class="bi bi-database"></i> Selling Mode
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil"></i> Edit Card Info
+                </a>
+
+                <form asp-action="Save" method="post" class="selling-mode"
+                      style="display: @(Model.ScanMode == "selling" ? "block" : "none")" id="saveForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="estimatedValue" id="hiddenEstimatedValue" />
+                    <input type="hidden" name="listingPrice" id="hiddenListingPrice" />
+                    <input type="hidden" name="costBasis" id="hiddenCostBasis" />
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-save"></i> Save to Inventory
+                    </button>
+                </form>
+
+                <form asp-action="Discard" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash"></i> Discard Scan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-calculate suggested price
+        document.getElementById('estimatedValue').addEventListener('input', async function() {
+            const estimatedValue = parseFloat(this.value) || 0;
+
+            if (estimatedValue > 0) {
+                // Call CalculateSuggested endpoint (reuse existing from PricingController)
+                try {
+                    const response = await fetch('@Url.Action("CalculateSuggested", "Pricing")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: JSON.stringify({
+                            cardId: 0, // No DB ID for scanned cards
+                            estimatedValue: estimatedValue
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            document.getElementById('suggestedPrice').value = data.suggestedPrice.toFixed(2);
+                            document.getElementById('listingPrice').value = data.suggestedPrice.toFixed(2);
+                            document.getElementById('suggestedPriceContainer').style.display = 'block';
+                            calculateProfit();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error calculating suggested price:', error);
+                }
+            } else {
+                document.getElementById('suggestedPriceContainer').style.display = 'none';
+            }
+        });
+
+        // Real-time profit calculator
+        function calculateProfit() {
+            const listingPrice = parseFloat(document.getElementById('listingPrice').value) || 0;
+            const costBasis = parseFloat(document.getElementById('costBasis').value) || 0;
+
+            const fees = listingPrice * 0.11;
+            const revenue = listingPrice - fees;
+            const profit = revenue - costBasis;
+            const margin = listingPrice > 0 ? (profit / listingPrice * 100) : 0;
+
+            document.getElementById('displayListingPrice').textContent = '$' + listingPrice.toFixed(2);
+            document.getElementById('displayFees').textContent = '-$' + fees.toFixed(2);
+            document.getElementById('displayRevenue').textContent = '$' + revenue.toFixed(2);
+            document.getElementById('displayProfit').textContent = '$' + profit.toFixed(2);
+            document.getElementById('displayProfit').className = profit >= 0 ? 'text-success' : 'text-danger';
+            document.getElementById('displayMargin').textContent = '(' + margin.toFixed(1) + '%)';
+
+            // Update hidden fields for form submission
+            document.getElementById('hiddenEstimatedValue').value = document.getElementById('estimatedValue').value || '';
+            document.getElementById('hiddenListingPrice').value = listingPrice.toFixed(2);
+            document.getElementById('hiddenCostBasis').value = costBasis.toFixed(2);
+        }
+
+        document.getElementById('listingPrice').addEventListener('input', calculateProfit);
+        document.getElementById('costBasis').addEventListener('input', calculateProfit);
+
+        // Mode toggle
+        document.querySelectorAll('input[name="scanMode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const sellingElements = document.querySelectorAll('.selling-mode');
+                sellingElements.forEach(el => {
+                    el.style.display = this.value === 'selling' ? 'block' : 'none';
+                });
+            });
+        });
+    </script>
+}

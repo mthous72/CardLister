@@ -5,23 +5,9 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-5">Scan Results</h1>
-        <div>
-            <form asp-action="Save" method="post" class="d-inline">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-success btn-lg">
-                    <i class="bi bi-save"></i> Save Card
-                </button>
-            </form>
-            <form asp-action="Discard" method="post" class="d-inline ms-2">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash"></i> Discard
-                </button>
-            </form>
-        </div>
-    </div>
+    <h1 class="display-5 mb-4">
+        <i class="bi bi-card-checklist"></i> Review & Edit Scan Results
+    </h1>
 
     @if (Model.VerificationResult != null && Model.VerificationResult.OverallConfidence != FlipKit.Core.Models.Enums.VerificationConfidence.Low)
     {
@@ -57,11 +43,11 @@
     }
 
     <div class="row">
-        <!-- Card Images -->
+        <!-- Left Column: Images -->
         <div class="col-md-4">
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5>Images</h5>
+                    <h5>Card Images</h5>
                 </div>
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(Model.FrontImagePath))
@@ -80,174 +66,191 @@
             </div>
         </div>
 
-        <!-- Scanned Card Data -->
+        <!-- Right Column: Editable Form -->
         <div class="col-md-8">
             @if (Model.ScannedCard != null)
             {
-                <!-- Basic Info -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5>Basic Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <dl class="row">
-                                    <dt class="col-sm-5">Player Name:</dt>
-                                    <dd class="col-sm-7"><strong>@Model.ScannedCard.PlayerName</strong></dd>
+                <form asp-action="ResearchComps" method="post" id="scanForm">
+                    @Html.AntiForgeryToken()
 
-                                    <dt class="col-sm-5">Sport:</dt>
-                                    <dd class="col-sm-7">@Model.ScannedCard.Sport</dd>
+                    <!-- Hidden fields for non-essential properties -->
+                    <input type="hidden" asp-for="ScannedCard.Id" />
+                    <input type="hidden" asp-for="ScannedCard.Status" />
+                    <input type="hidden" name="frontImagePath" value="@Model.FrontImagePath" />
+                    <input type="hidden" name="backImagePath" value="@Model.BackImagePath" />
+                    <input type="hidden" asp-for="ScannedCard.Condition" />
+                    <input type="hidden" asp-for="ScannedCard.Manufacturer" />
+                    <input type="hidden" asp-for="ScannedCard.CertNumber" />
+                    <input type="hidden" asp-for="ScannedCard.AutoGrade" />
+                    <input type="hidden" asp-for="ScannedCard.IsShortPrint" />
+                    <input type="hidden" asp-for="ScannedCard.IsSSP" />
 
-                                    <dt class="col-sm-5">Brand:</dt>
-                                    <dd class="col-sm-7">@(Model.ScannedCard.Brand ?? "-")</dd>
-
-                                    <dt class="col-sm-5">Manufacturer:</dt>
-                                    <dd class="col-sm-7">@(Model.ScannedCard.Manufacturer ?? "-")</dd>
-                                </dl>
-                            </div>
-                            <div class="col-md-6">
-                                <dl class="row">
-                                    <dt class="col-sm-5">Year:</dt>
-                                    <dd class="col-sm-7">@(Model.ScannedCard.Year?.ToString() ?? "-")</dd>
-
-                                    <dt class="col-sm-5">Card Number:</dt>
-                                    <dd class="col-sm-7">@(Model.ScannedCard.CardNumber ?? "-")</dd>
-
-                                    <dt class="col-sm-5">Team:</dt>
-                                    <dd class="col-sm-7">@(Model.ScannedCard.Team ?? "-")</dd>
-
-                                    <dt class="col-sm-5">Set Name:</dt>
-                                    <dd class="col-sm-7">@(Model.ScannedCard.SetName ?? "-")</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card Features -->
-                @if (Model.ScannedCard.IsRookie || Model.ScannedCard.IsAuto || Model.ScannedCard.IsRelic ||
-                     Model.ScannedCard.IsShortPrint || Model.ScannedCard.IsSSP)
-                {
+                    <!-- Section 1: Basic Information -->
                     <div class="card mb-3">
-                        <div class="card-header">
-                            <h5>Card Features</h5>
-                        </div>
+                        <div class="card-header"><h5>Basic Information</h5></div>
                         <div class="card-body">
-                            <div class="d-flex flex-wrap gap-2">
-                                @if (Model.ScannedCard.IsRookie)
-                                {
-                                    <span class="badge bg-warning text-dark">Rookie Card</span>
-                                }
-                                @if (Model.ScannedCard.IsAuto)
-                                {
-                                    <span class="badge bg-info">Autograph</span>
-                                }
-                                @if (Model.ScannedCard.IsRelic)
-                                {
-                                    <span class="badge bg-success">Relic/Memorabilia</span>
-                                }
-                                @if (Model.ScannedCard.IsShortPrint)
-                                {
-                                    <span class="badge bg-secondary">Short Print</span>
-                                }
-                                @if (Model.ScannedCard.IsSSP)
-                                {
-                                    <span class="badge bg-dark">Super Short Print</span>
-                                }
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Player Name *</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.PlayerName" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Sport</label>
+                                    <select class="form-select" asp-for="ScannedCard.Sport" asp-items="Html.GetEnumSelectList<FlipKit.Core.Models.Enums.Sport>()"></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Year</label>
+                                    <input type="number" class="form-control" asp-for="ScannedCard.Year" min="1900" max="2100" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Brand</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.Brand" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Set Name</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.SetName" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Card Number</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.CardNumber" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Team</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.Team" />
+                                </div>
                             </div>
                         </div>
                     </div>
-                }
 
-                <!-- Variation & Parallel -->
-                @if (!string.IsNullOrEmpty(Model.ScannedCard.VariationType) ||
-                     !string.IsNullOrEmpty(Model.ScannedCard.ParallelName) ||
-                     !string.IsNullOrEmpty(Model.ScannedCard.SerialNumbered))
-                {
+                    <!-- Section 2: Card Features -->
                     <div class="card mb-3">
-                        <div class="card-header">
-                            <h5>Variation & Parallel</h5>
-                        </div>
+                        <div class="card-header"><h5>Card Features</h5></div>
                         <div class="card-body">
-                            <dl class="row">
-                                @if (!string.IsNullOrEmpty(Model.ScannedCard.VariationType))
-                                {
-                                    <dt class="col-sm-4">Variation Type:</dt>
-                                    <dd class="col-sm-8">@Model.ScannedCard.VariationType</dd>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.ScannedCard.ParallelName))
-                                {
-                                    <dt class="col-sm-4">Parallel Name:</dt>
-                                    <dd class="col-sm-8">@Model.ScannedCard.ParallelName</dd>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.ScannedCard.SerialNumbered))
-                                {
-                                    <dt class="col-sm-4">Serial Number:</dt>
-                                    <dd class="col-sm-8">
-                                        <span class="badge bg-primary">@Model.ScannedCard.SerialNumbered</span>
-                                    </dd>
-                                }
-                            </dl>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="ScannedCard.IsRookie" />
+                                        <label class="form-check-label" asp-for="ScannedCard.IsRookie">Rookie Card</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="ScannedCard.IsAuto" />
+                                        <label class="form-check-label" asp-for="ScannedCard.IsAuto">Autograph</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="ScannedCard.IsRelic" />
+                                        <label class="form-check-label" asp-for="ScannedCard.IsRelic">Relic/Memorabilia</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                }
 
-                <!-- Grading Info -->
-                @if (Model.ScannedCard.IsGraded)
-                {
+                    <!-- Section 3: Grading Info -->
                     <div class="card mb-3">
-                        <div class="card-header">
-                            <h5>Grading Information</h5>
-                        </div>
+                        <div class="card-header"><h5>Grading</h5></div>
                         <div class="card-body">
-                            <dl class="row">
-                                <dt class="col-sm-4">Grading Company:</dt>
-                                <dd class="col-sm-8">@Model.ScannedCard.GradeCompany</dd>
-
-                                <dt class="col-sm-4">Grade:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-success fs-6">@Model.ScannedCard.GradeValue</span>
-                                </dd>
-
-                                @if (!string.IsNullOrEmpty(Model.ScannedCard.CertNumber))
-                                {
-                                    <dt class="col-sm-4">Cert Number:</dt>
-                                    <dd class="col-sm-8">@Model.ScannedCard.CertNumber</dd>
-                                }
-
-                                @if (!string.IsNullOrEmpty(Model.ScannedCard.AutoGrade))
-                                {
-                                    <dt class="col-sm-4">Auto Grade:</dt>
-                                    <dd class="col-sm-8">@Model.ScannedCard.AutoGrade</dd>
-                                }
-                            </dl>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" asp-for="ScannedCard.IsGraded" id="isGradedCheckbox" />
+                                <label class="form-check-label" asp-for="ScannedCard.IsGraded">Professionally Graded</label>
+                            </div>
+                            <div id="gradingFields" style="display: @(Model.ScannedCard.IsGraded ? "block" : "none")">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Grade Company</label>
+                                        <input type="text" class="form-control" asp-for="ScannedCard.GradeCompany" placeholder="PSA, BGS, CGC, etc." />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Grade Value</label>
+                                        <input type="text" class="form-control" asp-for="ScannedCard.GradeValue" placeholder="10, 9.5, etc." />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                }
 
-                <!-- Condition -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5>Condition</h5>
+                    <!-- Section 4: Variation & Parallel -->
+                    <div class="card mb-3">
+                        <div class="card-header"><h5>Variation & Parallel</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Variation Type</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.VariationType" placeholder="Base, Image Variation, etc." />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Parallel Name</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.ParallelName" placeholder="Silver, Gold, Orange, etc." />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Serial Numbered</label>
+                                    <input type="text" class="form-control" asp-for="ScannedCard.SerialNumbered" placeholder="/99, /10, etc." />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-0">@Model.ScannedCard.Condition</p>
-                    </div>
-                </div>
 
-                <!-- Action Buttons -->
-                <div class="d-flex justify-content-between mt-4">
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Scan Another
-                    </a>
-                    <form asp-action="Save" method="post">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-success btn-lg">
+                    <!-- Mode Toggle -->
+                    <div class="mb-3">
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="scanMode" id="buyingMode" value="buying" @(Model.ScanMode == "buying" ? "checked" : "")>
+                            <label class="btn btn-outline-primary" for="buyingMode">
+                                <i class="bi bi-cart"></i> Buying (Research)
+                            </label>
+                            <input type="radio" class="btn-check" name="scanMode" id="sellingMode" value="selling" @(Model.ScanMode == "selling" ? "checked" : "")>
+                            <label class="btn btn-outline-success" for="sellingMode">
+                                <i class="bi bi-database"></i> Selling (Catalog)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2 text-center">
+                            Change mode to adjust available actions
+                        </small>
+                    </div>
+
+                    <!-- Action Buttons (dynamic based on mode) -->
+                    <div class="d-grid gap-2" id="actionButtons">
+                        <!-- Buying mode (default if buying) -->
+                        <button type="submit" formaction="@Url.Action("ResearchComps", "Scan")" class="btn btn-primary btn-lg buying-mode" style="display: @(Model.ScanMode == "buying" ? "block" : "none")">
+                            <i class="bi bi-graph-up"></i> Research Comps
+                        </button>
+                        <button type="submit" formaction="@Url.Action("Save", "Scan")" class="btn btn-outline-success buying-mode" style="display: @(Model.ScanMode == "buying" ? "block" : "none")">
                             <i class="bi bi-save"></i> Save to Inventory
                         </button>
-                    </form>
-                </div>
+
+                        <!-- Selling mode (default if selling) -->
+                        <button type="submit" formaction="@Url.Action("Save", "Scan")" class="btn btn-success btn-lg selling-mode" style="display: @(Model.ScanMode == "selling" ? "block" : "none")">
+                            <i class="bi bi-save"></i> Save Card
+                        </button>
+                        <div class="row selling-mode" style="display: @(Model.ScanMode == "selling" ? "flex" : "none")">
+                            <div class="col-6">
+                                <button type="submit" formaction="@Url.Action("ResearchComps", "Scan")" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-graph-up"></i> Research Comps
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" formaction="@Url.Action("SaveAndResearch", "Scan")" class="btn btn-outline-success w-100">
+                                    <i class="bi bi-save-fill"></i> Save & Research
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Actions -->
+                    <div class="d-flex justify-content-between mt-3">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Scan Another
+                        </a>
+                        <form asp-action="Discard" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i> Discard
+                            </button>
+                        </form>
+                    </div>
+                </form>
             }
             else
             {
@@ -260,3 +263,28 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Toggle button visibility based on mode
+        document.querySelectorAll('input[name="scanMode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const buyingElements = document.querySelectorAll('.buying-mode');
+                const sellingElements = document.querySelectorAll('.selling-mode');
+
+                if (this.value === 'buying') {
+                    buyingElements.forEach(el => el.style.display = el.tagName === 'DIV' ? 'block' : 'block');
+                    sellingElements.forEach(el => el.style.display = 'none');
+                } else {
+                    buyingElements.forEach(el => el.style.display = 'none');
+                    sellingElements.forEach(el => el.style.display = el.tagName === 'DIV' ? 'flex' : 'block');
+                }
+            });
+        });
+
+        // Show/hide grading fields based on checkbox
+        document.getElementById('isGradedCheckbox').addEventListener('change', function() {
+            document.getElementById('gradingFields').style.display = this.checked ? 'block' : 'none';
+        });
+    </script>
+}

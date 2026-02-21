@@ -11,5 +11,7 @@ namespace FlipKit.Web.Models
 
         // Use centralized model list from OpenRouterScannerService
         public List<string> AvailableModels { get; set; } = OpenRouterScannerService.AllVisionModels.ToList();
+
+        public string ScanMode { get; set; } = "selling"; // Buying or Selling mode
     }
 }

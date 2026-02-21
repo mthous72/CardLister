@@ -6,6 +6,59 @@
 <div class="container-fluid mt-4">
     <h1 class="display-4 mb-4">FlipKit Dashboard</h1>
 
+    <!-- Mode Selection Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h4 mb-3">Choose Your Workflow</h2>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="bi bi-cart-check display-1 text-primary mb-3"></i>
+                    <h3 class="card-title">Buying Mode</h3>
+                    <p class="card-text">
+                        Research card values while shopping. Scan cards, check comps,
+                        and make informed buying decisions without cluttering your inventory.
+                    </p>
+                    <ul class="list-unstyled text-start mb-4">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Quick comp research</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>No database saves</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Perfect for card shows</li>
+                    </ul>
+                    <a asp-controller="Scan" asp-action="Index" asp-route-mode="buying"
+                       class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-camera"></i> Start Researching
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-database-fill-check display-1 text-success mb-3"></i>
+                    <h3 class="card-title">Selling Mode</h3>
+                    <p class="card-text">
+                        Build your inventory catalog. Scan cards, set prices, and prepare
+                        for listing. All cards are saved to your database.
+                    </p>
+                    <ul class="list-unstyled text-start mb-4">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Full inventory tracking</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Pricing & cost management</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Export to Whatnot</li>
+                    </ul>
+                    <a asp-controller="Scan" asp-action="Index" asp-route-mode="selling"
+                       class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-camera"></i> Start Cataloging
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5" />
+
     <div class="row g-3">
         <!-- Total Cards -->
         <div class="col-md-4">
